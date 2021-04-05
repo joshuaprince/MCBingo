@@ -5,34 +5,74 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.jtprince.bingo.plugin.MCBingoPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ItemTriggerYaml {
-    public final Map<String, MatchGroup> itemTriggers;
+    private static final String YAML_PATH = "/item_triggers.yml";
+    private static ItemTriggerYaml defaultYaml;
+    public final @NotNull Map<String, MatchGroup> itemTriggers;
 
     @JsonCreator
-    public ItemTriggerYaml(@JsonProperty("item_triggers") Map<String, MatchGroup> itemTriggers) {
-        this.itemTriggers = itemTriggers;
+    private ItemTriggerYaml(@JsonProperty("item_triggers") @NotNull Map<String, MatchGroup> root) {
+        this.itemTriggers = root;
     }
 
-    public static ItemTriggerYaml fromFile(InputStream yamlFile) throws IOException {
+    private ItemTriggerYaml() {
+        this.itemTriggers = new HashMap<>();
+    }
+
+    /**
+     * Load the YAML specification containing item trigger definitions packaged with the JAR, at
+     * resources/item_triggers.yml.
+     */
+    public static ItemTriggerYaml defaultYaml() {
+        if (defaultYaml == null) {
+             defaultYaml = ItemTriggerYaml.fromFile(ItemTrigger.class.getResourceAsStream(YAML_PATH));
+        }
+        return defaultYaml;
+    }
+
+    /**
+     * Load a YAML specification from an InputStream.
+     */
+    public static ItemTriggerYaml fromFile(InputStream yamlFile) {
         ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
+
         // Allow `name` field to be either a String or list of Strings
         yaml.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        return yaml.readValue(yamlFile, ItemTriggerYaml.class);
+
+        try {
+            return yaml.readValue(yamlFile, ItemTriggerYaml.class);
+        } catch (IOException e) {
+            MCBingoPlugin.logger().log(
+                Level.SEVERE, "Could not parse item triggers yaml", e);
+            return new ItemTriggerYaml();
+        }
     }
 
-    public @Nullable ItemTriggerYaml.MatchGroup get(String goalId) {
+    /**
+     * Get the specifications for the Item Trigger that is configured for a given goal ID. If the
+     * goal ID is not present in item_triggers.yml, returns null. The return value is an Item Match
+     * Group that can be considered the Root Item Match Group for this goal ID.
+     */
+    @Nullable ItemTriggerYaml.MatchGroup get(String goalId) {
         return itemTriggers.get(goalId);
     }
 
-    public static class MatchGroup {
+    /**
+     * An Item Match Group is a node in a tree of Item Match Group objects, with the root of this
+     * tree belonging to a goal ID. This mechanism is described in detail in README.md.
+     */
+    static class MatchGroup {
         private final List<Pattern> names;
         public final int unique;
         public final int total;

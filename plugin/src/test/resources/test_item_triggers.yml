@@ -4,21 +4,21 @@ item_triggers:
   jm_book_quill:
     name: minecraft:writable_book
 
+  jm_gold_items:
+    unique: 4
+    name:
+      - minecraft:golden_boots
+      - minecraft:golden_chestplate
+      - minecraft:golden_helmet
+      - minecraft:golden_leggings
+
   jm_coarse_dirt:
     total: 64
     name: minecraft:coarse_dirt
 
-  jm_gold_items:
-    unique: 4
-    name:
-      - minecraft:golden_axe
-      - minecraft:golden_boots
-      - minecraft:golden_chestplate
-      - minecraft:golden_helmet
-
-  jm_terracotta:
+  jm_wool_colors:
     unique: 5
-    name: minecraft:.*_terracotta
+    name: minecraft:.*_wool
 
   jm_pistons:
     total: 10
@@ -49,7 +49,7 @@ item_triggers:
     name:
       - minecraft:apple
       - minecraft:beetroot
-      - minecraft:.*_food
+      - minecraft:.*_stew
     groups:
       - name:
           - minecraft:baked_potato
@@ -61,7 +61,7 @@ item_triggers:
   jm_roses_dandelions:
     unique: 2
     groups:
-      - name: minecraft:rose
+      - name: minecraft:rose_bush
         total: 10
       - name: minecraft:dandelion
         total: 15

@@ -2,22 +2,16 @@ package com.jtprince.bingo.plugin.automarking.itemtrigger;
 
 import com.jtprince.bingo.plugin.MCBingoPlugin;
 import com.jtprince.bingo.plugin.automarking.AutoMarkTrigger;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
 
 /**
  * Defines an item or set of items that the user can collect to automatically mark a Space as
  * completed.
  */
 public class ItemTrigger extends AutoMarkTrigger {
-    private static ItemTriggerYaml defaultYaml;
-
     private final ItemTriggerYaml.MatchGroup rootMatchGroup;
 
     public static Collection<ItemTrigger> createTriggers(String goalId, ItemTriggerYaml yml) {
@@ -29,22 +23,21 @@ public class ItemTrigger extends AutoMarkTrigger {
     }
 
     public static Collection<ItemTrigger> createTriggers(String goalId) {
-        if (defaultYaml == null) {
-            try {
-                 defaultYaml = ItemTriggerYaml.fromFile(
-                    ItemTrigger.class.getResourceAsStream("/item_triggers.yml"));
-            } catch (IOException e) {
-                MCBingoPlugin.logger().log(Level.SEVERE, "Could not parse item triggers yaml", e);
-                return Collections.emptySet();
-            }
-        }
-
-        return createTriggers(goalId, defaultYaml);
+        return createTriggers(goalId, ItemTriggerYaml.defaultYaml());
     }
 
     @Override
     public void destroy() {
         MCBingoPlugin.instance().autoMarkListener.unregister(this);
+    }
+
+    /**
+     * Determine whether the given inventory contains some items that can allow a goal to be
+     * considered completed.
+     */
+    public boolean isSatisfiedBy(Collection<@NotNull ItemStack> inventory) {
+        UT rootUT = effectiveUT(rootMatchGroup, inventory);
+        return rootUT.u >= rootMatchGroup.unique && rootUT.t >= rootMatchGroup.total;
     }
 
     private ItemTrigger(ItemTriggerYaml.MatchGroup rootMatchGroup) {
@@ -53,81 +46,54 @@ public class ItemTrigger extends AutoMarkTrigger {
     }
 
     /**
-     * Determine whether the given inventory contains some items that can allow a goal to be
-     * considered completed.
+     * Simple container class for a "u" and "t" value. See README.md for description of these
+     * values.
      */
-    public boolean isSatisfied(Collection<Inventory> inventories) {
-        ItemMatchGroupInstance rootInstance = createMatchGroupInstance(rootMatchGroup);
-        for (Inventory inv : inventories) {
-            for (ItemStack itemStack : inv.getContents()) {
-                rootInstance.scan(itemStack);
-            }
-        }
-        return rootInstance.isSatisfied();
+    private static class UT {
+        int u = 0;
+        int t = 0;
     }
 
-    private ItemMatchGroupInstance createMatchGroupInstance(ItemTriggerYaml.MatchGroup backing) {
-        ItemMatchGroupInstance instance = new ItemMatchGroupInstance(backing);
-        for (ItemTriggerYaml.MatchGroup child : backing.children) {
-            instance.children.add(createMatchGroupInstance(child));
-        }
-        return instance;
-    }
+    /**
+     * The effective U and T values for a Match Group reflect a combination of U and T values from
+     * that match group and all of its children. At their simplest, "u" reflects how many unique
+     * items in `inventory` match, and "t" reflects the total number of items that match.
+     * See README.md for more details.
+     */
+    private static UT effectiveUT(ItemTriggerYaml.MatchGroup matchGroup,
+                                  Collection<ItemStack> inventory) {
+        UT ret = new UT();
+        HashSet<String> seenItemNames = new HashSet<>();
 
-    private static class ItemMatchGroupInstance {
-        private final ItemTriggerYaml.MatchGroup backing;
-        private final Collection<String> seenNames = new HashSet<>();
-        private int u = 0;
-        private int t = 0;
-        private final Collection<ItemMatchGroupInstance> children = new HashSet<>();
-
-        ItemMatchGroupInstance(ItemTriggerYaml.MatchGroup backing) {
-            this.backing = backing;
-        }
-
-        void scan(@Nullable ItemStack itemStack) {
+        for (ItemStack itemStack : inventory) {
             if (itemStack == null) {
-                return;
+                continue;
             }
 
             String namespacedName = namespacedName(itemStack);
-            if (backing.nameMatches(namespacedName)) {
-                return;
+            if (!matchGroup.nameMatches(namespacedName)) {
+                continue;
             }
 
-            if (!seenNames.contains(namespacedName)) {
-                if (u < backing.unique) {
-                    u++;
+            if (!seenItemNames.contains(namespacedName)) {
+                if (ret.u < matchGroup.unique) {
+                    ret.u++;
                 }
-                seenNames.add(namespacedName);
+                seenItemNames.add(namespacedName);
             }
 
-            t = Math.min(backing.total, t + itemStack.getAmount());
+            ret.t = Math.min(matchGroup.total, ret.t + itemStack.getAmount());
+        }
 
-            for (ItemMatchGroupInstance child : children) {
-                child.scan(itemStack);
+        for (ItemTriggerYaml.MatchGroup child : matchGroup.children) {
+            UT childUT = effectiveUT(child, inventory);
+            ret.t += childUT.t;
+            if (childUT.t >= child.total) {
+                ret.u += childUT.u;
             }
         }
 
-        boolean isSatisfied() {
-            return effectiveU() >= backing.unique && effectiveT() >= backing.total;
-        }
-
-        private int effectiveU() {
-            int sumU = u;
-            for (ItemMatchGroupInstance child : children) {
-                sumU += child.effectiveU();
-            }
-            return sumU;
-        }
-
-        private int effectiveT() {
-            int sumT = t;
-            for (ItemMatchGroupInstance child : children) {
-                sumT += child.effectiveT();
-            }
-            return sumT;
-        }
+        return ret;
     }
 
     /**

@@ -184,14 +184,14 @@ scanned when given an item trigger definition.
 
 ### Item group tree
 
-The internal representation of every item trigger is a tree of ItemMatchGroup 
-objects. An ItemMatchGroup object consists of the following fields:
+The internal representation of every item trigger is a tree of MatchGroup 
+objects. A MatchGroup object consists of the following fields:
 
 ```
     +---------------+
     | name: Regex[] |
     | unique: int   |
-    | total:  int   |
+    | total: int    |
     | children: []  |
     +---------------+
 ```
@@ -206,18 +206,75 @@ and `children` (`groups`) default to an empty list, `unique` and `total`
 default to 1.
 
 The satisfaction of an item trigger is determined on the basis of an entire
-inventory. The inventory is scanned one item stack at a time, during which
-period each ItemMatchGroup maintains running counters `u` and `t`. These
-counters correspond to the `unique` and `total` properties respectively, and
-obey the following rules:
+inventory. Each ItemMatchGroup maintains counters `u` and `t`. At their
+simplest, `u` reflects how many *unique* items in the inventory match this match
+group, and `t` reflects the *total* number of items that match this match 
+group.
 
-- If the namespaced ID of an item stack does not match any regular expressions
-  in `name`, then this item stack cannot increment either `u` or `t`.
-- `t` is incremented as many times as there are items in this stack.
-- `t` may not be incremented past `total`.
-- `u` is incremented once for each unique namespaced ID that is found in the 
-  inventory.
-- `u` may not be incremented past `unique`.
+When a Match Group has children, its `u` and `t` counters can be incremented 
+by these children. A Match Group finds its "effective U and T" by inspecting 
+its children:
 
-The root ItemMatchGroup is considered satisfied if and only if `t >= total` 
-and `u >= unique`.
+1. A child Match Group's `t` value increments the parent's `t` one-to-one up to
+   the child's `total`.
+2. A child Match Group's `u` value increments the parent's `u` one-to-one up to
+   the child's `unique` **only if the child's `t` has reached the child's
+   `total`**.
+3. A root Match Group is satisfied when its effective `u >= unique` and
+   `t >= total`.
+
+### Example
+
+Let's look at the roses and dandelions example first presented above:
+
+```yaml
+  jm_roses_dandelions:
+    # Goal: "10 Roses and 15 Dandelions"
+    unique: 2
+    groups:
+      - name: minecraft:rose
+        total: 10
+      - name: minecraft:dandelion
+        total: 15
+```
+
+This YAML will create a Match Group tree that looks like this:
+
+```
+                  +---------------+
+                  | name: []      |
+                  | unique: 2     |
+                  | total: 1      |
+                  | children: (2) |
+                  +-+-----------+-+
+                    |           |
+                    v           v
+    +-----------------+       +-----------------+
+    | name: "mc:rose" |       | name: "mc:ddln" |
+    | unique: 1       |       | unique: 1       |
+    | total: 10       |       | total: 15       |
+    | children: (0)   |       | children: (0)   |
+    +-----------------+       +-----------------+
+```
+
+First, note that the root Match Group has no `name` key. Therefore, neither 
+`u` nor `t` will be incremented by an item internally in that Match Group.
+
+The root Match Group then turns to its children to find its "effective U and T".
+Let's say that a player has 12 roses, and 8 dandelions in their inventory - not
+enough to satisfy this Item Trigger. The Rose Match Group will only pay
+attention to the 12 roses, and its `u` will be calculated to be 1, as there is
+only 1 unique item that matches this Match Group. Its `t` value will be
+calculated to 10, because while the player has 12 roses, `t` cannot exceed
+`total` for a match group. The Rose Match Group will contribute 10 toward the
+root's `t`, and 1 toward the root's `u`.
+
+Now let's look at the Dandelion match group. The player has 1 unique item 
+that matches, so `u` becomes 1, and 8 this item, so `t` becomes 8. The 
+Dandelion match group will contribute 8 toward the root's `t`. But **the 
+Dandelion match group will contribute 0 to the root's `u`** - because this 
+child's `t` has not reached its `total`.
+
+The root match group's effective `t` is therefore 18, which is greater than 
+its requirement of 1. But the root's effective `u` is only 1. Therefore, the 
+item trigger is not satisfied.

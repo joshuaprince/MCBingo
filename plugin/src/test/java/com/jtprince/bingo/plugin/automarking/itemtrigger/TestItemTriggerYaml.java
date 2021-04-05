@@ -1,15 +1,19 @@
-import com.jtprince.bingo.plugin.automarking.itemtrigger.ItemTriggerYaml;
+package com.jtprince.bingo.plugin.automarking.itemtrigger;
+
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestItemTrigger {
-    ItemTriggerYaml yaml;
+/**
+ * Test the functionality of the Item Trigger YAML parser.
+ */
+public class TestItemTriggerYaml {
+    final static String YAML_PATH = "/test_item_triggers.yml";
+    final ItemTriggerYaml yaml;
 
-    public TestItemTrigger() throws IOException {
-        yaml = ItemTriggerYaml.fromFile(getClass().getResourceAsStream("/test_item_triggers.yml"));
+    public TestItemTriggerYaml() {
+        yaml = ItemTriggerYaml.fromFile(getClass().getResourceAsStream(YAML_PATH));
     }
 
     @Test
@@ -34,7 +38,7 @@ public class TestItemTrigger {
         ItemTriggerYaml.MatchGroup g = yaml.get("jm_different_edible");
         assertNotNull(g);
         assertTrue(g.nameMatches("minecraft:beetroot"));
-        assertTrue(g.nameMatches("minecraft:regex_food"));
+        assertTrue(g.nameMatches("minecraft:regex_stew"));
         assertFalse(g.nameMatches("minecraft:potato"));  // In child
         assertEquals(6, g.unique);
         assertEquals(2, g.children.size());
