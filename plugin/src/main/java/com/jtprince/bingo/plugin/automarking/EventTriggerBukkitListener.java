@@ -1,6 +1,7 @@
 package com.jtprince.bingo.plugin.automarking;
 
 import com.jtprince.bingo.plugin.BingoGame;
+import com.jtprince.bingo.plugin.automarking.itemtrigger.ItemTrigger;
 import com.jtprince.bingo.plugin.player.BingoPlayer;
 import com.jtprince.bingo.plugin.MCBingoPlugin;
 import io.papermc.paper.event.player.PlayerTradeEvent;
@@ -86,7 +87,7 @@ public class EventTriggerBukkitListener implements Listener {
         }
     }
 
-    void unregister(ItemTrigger itemTrigger) {
+    public void unregister(ItemTrigger itemTrigger) {
         boolean existed = itemTriggers.remove(itemTrigger);
 
         if (!existed) {

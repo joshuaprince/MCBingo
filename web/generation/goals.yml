@@ -1,0 +1,15 @@
+goals:
+  jm_different_fish:
+    difficulty: 0
+    text: $var Different Fish
+    var: 2..4
+
+  jm_tree_nether:  # Auto
+    difficulty: 0
+    text: Grow a Tree in the Nether
+
+  jm_color_terracotta:
+    difficulty: 0
+    weight: 0.25
+    text: $var Colors of Terracotta
+    var: 4..7

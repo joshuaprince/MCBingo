@@ -227,9 +227,11 @@
   </Goal>
   <Goal difficulty="0" id="jm_pistons_78275">
     <Description>$var Pistons</Description>
+    <Tooltip>They may or may not be sticky.</Tooltip>
     <Variable min="5" max="10"/>
     <ItemTrigger>
       <Name>minecraft:piston</Name>
+      <Name>minecraft:sticky_piston</Name>
       <Quantity>$var</Quantity>
     </ItemTrigger>
   </Goal>
