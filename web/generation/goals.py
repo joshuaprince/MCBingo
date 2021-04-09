@@ -17,7 +17,7 @@ GOALS: List['GoalTemplate'] = []
 class GoalTemplate:
     """
     An abstract Goal "template" that contains unset variable ranges.
-    Each GoalTemplate maps 1:1 with a <Goal> defined in `goals.xml`.
+    Each GoalTemplate maps 1:1 with a <Goal> defined in `goals.yml`.
     """
     def __init__(self, id: str):
         self.id = id
