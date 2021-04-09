@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,9 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class TestItemTrigger {
     final ItemTriggerYaml yaml;
+    final Map<String, Integer> testVariables = new HashMap<>();
 
     public TestItemTrigger() {
         yaml = new TestItemTriggerYaml().yaml;
+        testVariables.put("var", 15);  // jm_ender_pearls
+        testVariables.put("varFish", 3);  // jm_different_fish
     }
 
     @Test
@@ -109,8 +114,19 @@ public class TestItemTrigger {
     }
 
     @Test
-    void testGroupsBasic() {
-        ItemTrigger t = makeTrigger("jm_different_fish");  // 3 Different Fish
+    void testVariables() {
+        ItemTrigger t = makeTrigger("jm_ender_pearls");  // "$var" (15) Ender Pearls
+
+        ArrayList<ItemStack> inv = new ArrayList<>();
+        inv.add(new ItemStack(Material.ENDER_PEARL, 14));
+        assertFalse(t.isSatisfiedBy(inv));
+        inv.add(new ItemStack(Material.ENDER_PEARL, 1));
+        assertTrue(t.isSatisfiedBy(inv));
+    }
+
+    @Test
+    void testGroupsBasicWithVariable() {
+        ItemTrigger t = makeTrigger("jm_different_fish");  // "$varFish" (3) Different Fish
 
         ArrayList<ItemStack> inv = new ArrayList<>();
         inv.add(new ItemStack(Material.COD, 10));
@@ -162,6 +178,6 @@ public class TestItemTrigger {
     }
 
     private @NotNull ItemTrigger makeTrigger(@NotNull String goalId) {
-        return ItemTrigger.createTriggers(goalId, yaml).stream().findFirst().orElseThrow();
+        return ItemTrigger.createTriggers(goalId, testVariables, yaml).stream().findFirst().orElseThrow();
     }
 }

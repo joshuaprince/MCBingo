@@ -70,7 +70,7 @@ public class EventTriggerBukkitListener implements Listener {
         }
     }
 
-    void register(ItemTrigger itemTrigger) {
+    public void register(ItemTrigger itemTrigger) {
         boolean added = itemTriggers.add(itemTrigger);
         if (!added) {
             plugin.getLogger().severe(

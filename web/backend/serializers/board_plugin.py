@@ -8,13 +8,12 @@ from generation.goals import ConcreteGoal
 class SpacePluginSerializer(serializers.ModelSerializer):
     class Meta:
         model = Space
-        fields = ['space_id', 'goal_id', 'text', 'type', 'variables', 'triggers']
+        fields = ['space_id', 'goal_id', 'text', 'type', 'variables']
 
     space_id = serializers.IntegerField(source='pk')
     goal_id = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
     variables = serializers.SerializerMethodField()
-    triggers = serializers.SerializerMethodField()
 
     @staticmethod
     def _concrete_goal(instance):

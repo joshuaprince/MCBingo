@@ -1,6 +1,7 @@
 package com.jtprince.bingo.plugin.automarking.itemtrigger;
 
 import com.jtprince.bingo.plugin.MCBingoPlugin;
+import com.jtprince.bingo.plugin.Space;
 import com.jtprince.bingo.plugin.automarking.AutoMarkTrigger;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -13,17 +14,29 @@ import java.util.*;
  */
 public class ItemTrigger extends AutoMarkTrigger {
     private final ItemTriggerYaml.MatchGroup rootMatchGroup;
+    private final Map<String, Integer> variables;
 
-    public static Collection<ItemTrigger> createTriggers(String goalId, ItemTriggerYaml yml) {
+    public static Collection<ItemTrigger> createTriggers(@NotNull Space space) {
+        ItemTriggerYaml.MatchGroup mg = ItemTriggerYaml.defaultYaml().get(space.goalId);
+        if (mg == null) {
+            return Collections.emptySet();
+        }
+        ItemTrigger it = new ItemTrigger(space, mg, space.variables);
+        MCBingoPlugin.instance().autoMarkListener.register(it);
+        return Set.of(it);
+    }
+
+    /* TODO: This constructor is only used for unit testing. */
+    static Collection<ItemTrigger> createTriggers(@NotNull String goalId,
+                                                  @NotNull Map<String, Integer> variables,
+                                                  @NotNull ItemTriggerYaml yml) {
         ItemTriggerYaml.MatchGroup mg = yml.get(goalId);
         if (mg == null) {
             return Collections.emptySet();
         }
-        return Set.of(new ItemTrigger(mg));
-    }
-
-    public static Collection<ItemTrigger> createTriggers(String goalId) {
-        return createTriggers(goalId, ItemTriggerYaml.defaultYaml());
+        ItemTrigger it = new ItemTrigger(null, mg, variables);
+        MCBingoPlugin.instance().autoMarkListener.register(it);
+        return Set.of(it);
     }
 
     @Override
@@ -37,12 +50,15 @@ public class ItemTrigger extends AutoMarkTrigger {
      */
     public boolean isSatisfiedBy(Collection<@NotNull ItemStack> inventory) {
         UT rootUT = effectiveUT(rootMatchGroup, inventory);
-        return rootUT.u >= rootMatchGroup.unique && rootUT.t >= rootMatchGroup.total;
+        return rootUT.u >= rootMatchGroup.getUnique(variables)
+            && rootUT.t >= rootMatchGroup.getTotal(variables);
     }
 
-    private ItemTrigger(ItemTriggerYaml.MatchGroup rootMatchGroup) {
-        super();
+    private ItemTrigger(Space space, ItemTriggerYaml.MatchGroup rootMatchGroup,
+                        Map<String, Integer> variables) {
+        super(space);
         this.rootMatchGroup = rootMatchGroup;
+        this.variables = variables;
     }
 
     /**
@@ -60,7 +76,7 @@ public class ItemTrigger extends AutoMarkTrigger {
      * items in `inventory` match, and "t" reflects the total number of items that match.
      * See README.md for more details.
      */
-    private static UT effectiveUT(ItemTriggerYaml.MatchGroup matchGroup,
+    private UT effectiveUT(ItemTriggerYaml.MatchGroup matchGroup,
                                   Collection<ItemStack> inventory) {
         UT ret = new UT();
         HashSet<String> seenItemNames = new HashSet<>();
@@ -76,19 +92,19 @@ public class ItemTrigger extends AutoMarkTrigger {
             }
 
             if (!seenItemNames.contains(namespacedName)) {
-                if (ret.u < matchGroup.unique) {
+                if (ret.u < matchGroup.getUnique(variables)) {
                     ret.u++;
                 }
                 seenItemNames.add(namespacedName);
             }
 
-            ret.t = Math.min(matchGroup.total, ret.t + itemStack.getAmount());
+            ret.t = Math.min(matchGroup.getTotal(variables), ret.t + itemStack.getAmount());
         }
 
         for (ItemTriggerYaml.MatchGroup child : matchGroup.children) {
             UT childUT = effectiveUT(child, inventory);
             ret.t += childUT.t;
-            if (childUT.t >= child.total) {
+            if (childUT.t >= child.getTotal(variables)) {
                 ret.u += childUT.u;
             }
         }

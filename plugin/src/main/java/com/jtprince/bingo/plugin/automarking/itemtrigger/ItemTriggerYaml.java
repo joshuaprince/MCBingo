@@ -74,27 +74,61 @@ public class ItemTriggerYaml {
      */
     static class MatchGroup {
         private final List<Pattern> names;
-        public final int unique;
-        public final int total;
+
+        private final Variable unique;
+        private final Variable total;
         public final List<MatchGroup> children;
 
         @JsonCreator
-        public MatchGroup(@JsonProperty("name") List<String> name,
-                          @JsonProperty("unique") Integer unique,
-                          @JsonProperty("total") Integer total,
+        MatchGroup(@JsonProperty("name") List<String> name,
+                          @JsonProperty("unique") String unique,
+                          @JsonProperty("total") String total,
                           @JsonProperty("groups") List<MatchGroup> groups) {
             if (name != null) {
                 this.names = name.stream().map(Pattern::compile).collect(Collectors.toList());
             } else {
                 this.names = Collections.emptyList();
             }
-            this.unique = Objects.requireNonNullElse(unique, 1);
-            this.total = Objects.requireNonNullElse(total, 1);
+            this.unique = new Variable(unique, 1);
+            this.total = new Variable(total, 1);
             this.children = Objects.requireNonNullElse(groups, Collections.emptyList());
         }
 
         public boolean nameMatches(String name) {
             return names.stream().anyMatch(p -> p.matcher(name).matches());
+        }
+
+        public int getUnique(@NotNull Map<String, Integer> setVariables) {
+            return unique.getValue(setVariables);
+        }
+
+        public int getTotal(@NotNull Map<String, Integer> setVariables) {
+            return total.getValue(setVariables);
+        }
+    }
+
+    static class Variable {
+        @Nullable String name;
+        @Nullable Integer constant;
+
+        Variable(@Nullable String yamlVarString, int defaultConstant) {
+            if (yamlVarString == null) {
+                this.constant = defaultConstant;
+            } else if (yamlVarString.startsWith("$")) {
+                this.name = yamlVarString.substring(1);
+            } else {
+                this.constant = Integer.parseInt(yamlVarString);
+            }
+        }
+
+        int getValue(@NotNull Map<String, Integer> setVariables) {
+            if (constant != null) {
+                return constant;
+            } else if (setVariables.containsKey(name)) {
+                return setVariables.get(name);
+            } else {
+                throw new RuntimeException("Unknown variable " + name);
+            }
         }
     }
 }

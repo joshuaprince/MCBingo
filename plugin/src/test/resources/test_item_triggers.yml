@@ -26,8 +26,12 @@ item_triggers:
       - minecraft:piston
       - minecraft:sticky_piston
 
+  jm_ender_pearls:
+    total: $var
+    name: minecraft:ender_pearl
+
   jm_different_fish:
-    unique: 3
+    unique: $varFish
     groups:
       - name:
           - minecraft:cod
