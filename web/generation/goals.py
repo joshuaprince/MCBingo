@@ -1,13 +1,11 @@
 import os
 from copy import deepcopy
 from random import Random
-from typing import Dict, List, Optional, OrderedDict
-from xml.etree import ElementTree
-from xml.etree.ElementTree import Element
+from typing import Dict, List, Optional
 
-import xmltodict
+import yaml
 
-GOAL_XML = os.path.join(os.path.dirname(__file__), 'goals.xml')
+GOAL_YML = os.path.join(os.path.dirname(__file__), 'goals.yml')
 MAX_DIFFICULTY = 10
 MAX_NEGATIVES = 3
 
@@ -30,7 +28,6 @@ class GoalTemplate:
         self.weight = 1.0
         self.antisynergy = None
         self.variable_ranges = {}  # type: Dict[str, tuple]
-        self.triggers_xml = []  # type: List[Element]
 
     def __str__(self):
         return f"({self.id}) {self.description_template}"
@@ -69,20 +66,6 @@ class ConcreteGoal:
         goal_id = self.template.id
         vars_str = '::'.join(':'.join([k, str(v)]) for k, v in self.variables.items())
         return ':::'.join([goal_id, vars_str])
-
-    def triggers(self) -> List[dict]:
-        triggers_list = []
-        for goal_trigger_element in self.template.triggers_xml:
-            xml_str = ElementTree.tostring(goal_trigger_element, encoding='unicode')
-            xml_str_derefd = self._replace_vars(xml_str)
-            xml_dict = xmltodict.parse(xml_str_derefd, force_list=True)  # type: OrderedDict
-
-            # Slight mangling to handle the fact that force_list above forces the root to be a list
-            #  (even though there is only ever 1 root)
-            root_key = list(xml_dict)[0]
-            root_val = xml_dict[root_key][0]
-            triggers_list.append({root_key: root_val})
-        return triggers_list
 
     @staticmethod
     def from_xml_id(xml_id: str) -> 'ConcreteGoal':
@@ -184,47 +167,47 @@ def get_goals(rand: Random, count: int, proportion_easy: float,
     return ret
 
 
-def parse_xml(filename=GOAL_XML):
-    etree = ElementTree.parse(filename)
-    goal_ids = set()  # just used for ID duplication checking
-    for e_goal in etree.getroot():
-        gid = e_goal.get('id')
-        if gid:
-            if gid in goal_ids:
-                raise ValueError(f"Duplicated goal ID {gid} in goal XML definition")
-            else:
-                goal_ids.add(gid)
+def parse_yml(filename=GOAL_YML):
+    with open(filename) as yml_file:
+        yml = yaml.safe_load(yml_file)
 
-        new_goal = GoalTemplate(gid)
-
-        difficulty = int(e_goal.get('difficulty'))
+    for goal_id, goal_dict in yml.get('goals').items():
+        new_goal = GoalTemplate(goal_id)
+        difficulty = goal_dict.get('difficulty')
         if difficulty is None or difficulty > MAX_DIFFICULTY:
-            raise ValueError(f"Goal {gid} does not have a difficulty between "
-                             f"0 and {MAX_DIFFICULTY}")
+            raise yaml.YAMLError(f"Goal {goal_id} does not have a difficulty between "
+                                 f"0 and {MAX_DIFFICULTY}")
         new_goal.difficulty = difficulty
 
-        if e_goal.find('Description') is not None:
-            new_goal.description_template = e_goal.find('Description').text
-        if e_goal.find('Tooltip') is not None:
-            new_goal.tooltip_template = e_goal.find('Tooltip').text
-        if e_goal.find('Weight') is not None:
-            new_goal.weight = float(e_goal.find('Weight').text)
-        if e_goal.find('Antisynergy') is not None:
-            new_goal.antisynergy = e_goal.find('Antisynergy').text
+        new_goal.description_template = goal_dict.get('text')
+        if not new_goal.description_template:
+            raise yaml.YAMLError(f"Goal {goal_id} does not have a `text` (description) tag.")
 
-        for e_var in e_goal.findall('Variable'):
-            name = e_var.get('name') or 'var'
-            mini = int(e_var.get('min'))
-            maxi = int(e_var.get('max'))
-            new_goal.variable_ranges[name] = (mini, maxi)
+        tooltip = goal_dict.get('tooltip')
+        if tooltip:
+            new_goal.tooltip_template = tooltip
 
-        new_goal.triggers_xml = e_goal.findall('ItemTrigger')
+        weight = goal_dict.get('weight')
+        if weight:
+            new_goal.weight = weight
 
-        goal_type = e_goal.get('type')
+        antisynergy = goal_dict.get('antisynergy')
+        if antisynergy:
+            new_goal.antisynergy = antisynergy
+
+        goal_type = goal_dict.get('type')
         if goal_type:
             new_goal.type = goal_type
+
+        for variable, range_str in \
+                ((k, v) for (k, v) in goal_dict.items() if k.startswith('var')):
+            try:
+                mini, maxi = range_str.split('..')
+                new_goal.variable_ranges[variable] = (int(mini), int(maxi))
+            except (ValueError, KeyError):
+                raise yaml.YAMLError(f"{goal_id}: Invalid variable {variable} = {range_str}.")
 
         GOALS.append(new_goal)
 
 
-parse_xml(GOAL_XML)
+parse_yml(GOAL_YML)

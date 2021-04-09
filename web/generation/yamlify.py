@@ -69,7 +69,7 @@ for g in GOALS:
         item_triggers[g.id] = trg
 
 
-with open('new_goals.yml', 'w') as f:
+with open('goals.yml', 'w') as f:
     yaml.dump({'goals': goals}, f, Dumper=MyDumper, sort_keys=False)
     print(f"{len(goals)} goals")
 with open('new_triggers.yml', 'w') as f:

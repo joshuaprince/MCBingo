@@ -29,9 +29,6 @@ class SpacePluginSerializer(serializers.ModelSerializer):
     def get_variables(self, obj):
         return self._concrete_goal(obj).variables
 
-    def get_triggers(self, obj):
-        return self._concrete_goal(obj).triggers()
-
 
 class BoardPluginSerializer(serializers.ModelSerializer):
     class Meta:
