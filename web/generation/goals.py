@@ -1,9 +1,13 @@
 import os
 from copy import deepcopy
 from random import Random
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 import yaml
+
+if TYPE_CHECKING:
+    from backend.models.space import Space
+
 
 GOAL_YML = os.path.join(os.path.dirname(__file__), 'goals.yml')
 MAX_DIFFICULTY = 10
@@ -11,7 +15,7 @@ MAX_NEGATIVES = 3
 
 GOAL_TYPE_NEGATIVE = 'negative'
 
-GOALS: List['GoalTemplate'] = []
+GOALS: Dict[str, 'GoalTemplate'] = {}
 
 
 class GoalTemplate:
@@ -42,8 +46,8 @@ class ConcreteGoal:
         :param template: Goal that this ConcreteGoal references.
         :param rand: Random element used to set variables. If None, variables will not be
                      automatically set. This should only be used if the variables are being set
-                     manually after creation of the ConcreteGoal (such as if being parsed from an
-                     XML ID)
+                     manually after creation of the ConcreteGoal (such as if being parsed from the
+                     database)
         """
         self.template = template
         self.variables = {}
@@ -58,38 +62,17 @@ class ConcreteGoal:
     def tooltip(self) -> str:
         return self._replace_vars(self.template.tooltip_template)
 
-    def xml_id(self) -> str:
-        """
-        XML ID contains the ID of the goal and serialized versions of any variables.
-        Example: "stairs:::needed:3::othervar:5"
-        """
-        goal_id = self.template.id
-        vars_str = '::'.join(':'.join([k, str(v)]) for k, v in self.variables.items())
-        return ':::'.join([goal_id, vars_str])
-
     @staticmethod
-    def from_xml_id(xml_id: str) -> 'ConcreteGoal':
-        goal_id, vars_str = xml_id.split(':::')
-
+    def from_space(space: 'Space') -> 'ConcreteGoal':
         # Find goal in GOALS
-        the_goal = None
-        for goal in GOALS:
-            if goal.id == goal_id:
-                the_goal = goal
+        the_goal = GOALS.get(space.goal_id)
         if the_goal is None:
-            raise RuntimeError(f"Goal ID {goal_id} does not exist in the loaded XML.")
+            raise RuntimeError(f"Goal ID {space.goal_id} does not exist in the loaded YML.")
 
         cg = ConcreteGoal(the_goal, None)
 
-        vars_from_xml = {}  # Map of (variable, value) in this XML definition
-        if vars_str:
-            for var_str in vars_str.split('::'):
-                k, v = var_str.split(':')
-                vars_from_xml[k] = v
-
-        # By iterating twice, ensure that only variables associated with this Goal are in this CG
-        for goal_var, _ in cg.template.variable_ranges.items():
-            cg.variables[goal_var] = vars_from_xml[goal_var]
+        for var in space.setvariable_set.all():
+            cg.variables[var.name] = var.value
 
         return cg
 
@@ -110,7 +93,7 @@ def get_goals(rand: Random, count: int, proportion_easy: float,
               forced_goals: List[str] = None) -> List[ConcreteGoal]:
     # Making a copy of our master Goal (template) list so that we can modify it,
     #  modifying goal weights as we go to ensure no duplicates.
-    goals_copy = deepcopy(GOALS)
+    goals_copy = deepcopy(GOALS).values()
 
     ret: List[ConcreteGoal] = []
     count_by_difficulty = [0, 0]
@@ -207,7 +190,7 @@ def parse_yml(filename=GOAL_YML):
             except (ValueError, KeyError):
                 raise yaml.YAMLError(f"{goal_id}: Invalid variable {variable} = {range_str}.")
 
-        GOALS.append(new_goal)
+        GOALS[new_goal.id] = new_goal
 
 
 parse_yml(GOAL_YML)

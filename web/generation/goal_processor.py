@@ -29,7 +29,7 @@ if __name__ == '__main__':
         # TODO
         pass
 
-    for g in GOALS:
+    for g in GOALS.values():
         desc_template = g.description_template
         weight = f" {{{g.weight}}}" if g.weight != 1 else ''
         for varname, (mini, maxi) in g.variable_ranges.items():
