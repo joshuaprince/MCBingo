@@ -53,7 +53,7 @@ public class Space {
         if (variables != null) {
             for (Object o : variables.keySet()) {
                 String k = (String) o;
-                int v = Integer.parseInt((String) variables.get(k));
+                int v = ((Long) variables.get(k)).intValue();
                 ret.put(k, v);
             }
         }
