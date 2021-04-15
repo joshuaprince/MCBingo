@@ -3,8 +3,6 @@ package com.jtprince.bingo.kplugin.automark
 import com.jtprince.bingo.kplugin.board.SetVariables
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryEvent
-import org.bukkit.event.player.PlayerEvent
 import org.bukkit.inventory.ItemStack
 
 class ItemTrigger private constructor(
@@ -13,7 +11,7 @@ class ItemTrigger private constructor(
     variables: SetVariables,
     callback: AutoMarkCallback,
     private val rootMatchGroup: ItemTriggerYaml.MatchGroup,
-) : EventTrigger(goalId, spaceId, variables, callback, td) {
+) : EventTrigger(goalId, spaceId, variables, callback, closeEvent) {
     companion object {
         fun createItemTriggers(goalId: String,
                                spaceId: Int,
@@ -25,12 +23,12 @@ class ItemTrigger private constructor(
             return setOf(ItemTrigger(goalId, spaceId, variables, callback, matchGroup))
         }
 
-        val td = TriggerDefinition(InventoryCloseEvent::class.java) {
+        val closeEvent = EventTriggerDefinition(InventoryCloseEvent::class.java) {
             it.trigger.satisfiedBy(it.event)
         }
     }
 
-    override fun satisfiedBy(event: Event): Boolean {
+    override fun <EventType: Event> satisfiedBy(event: EventType): Boolean {
         if (event !is InventoryCloseEvent) return false
 
         val rootUT = effectiveUT(rootMatchGroup, event.player.inventory.contents.filterNotNull())

@@ -8,7 +8,7 @@ open class EventTrigger internal constructor(
     spaceId: Int,
     variables: SetVariables,
     callback: AutoMarkCallback,
-    private val triggerDefinition: TriggerDefinition<*>,
+    private val triggerDefinition: EventTriggerDefinition<*>,
 ) : AutoMarkTrigger(goalId, spaceId, variables, callback) {
 
     companion object {
@@ -18,7 +18,7 @@ open class EventTrigger internal constructor(
                                 callback: AutoMarkCallback
         ): Collection<EventTrigger> {
             val ret = HashSet<EventTrigger>()
-            TriggerDefinition.registry[goalId]?.forEach {
+            EventTriggerDefinition.registry[goalId]?.forEach {
                 ret += EventTrigger(goalId, spaceId, variables, callback, it)
             }
             return ret
@@ -26,21 +26,17 @@ open class EventTrigger internal constructor(
     }
 
     init {
+        @Suppress("LeakingThis")
         AutoMarkBukkitListener.register(this, triggerDefinition.eventType)
     }
 
-    open fun destroy() {
+    fun destroy() {
         AutoMarkBukkitListener.unregister(this, triggerDefinition.eventType)
     }
 
-    open fun satisfiedBy(event: Event): Boolean {
-        val params = TriggerParameters(event,  variables, this)
-        return triggerDefinition.function.invoke(params as TriggerParameters<Nothing>) ?: false
-    }
-
-    fun receive(event: Event) {
-        if (satisfiedBy(event)) {
-            callback.invoke(spaceId)
-        }
+    open fun <EventType: Event> satisfiedBy(event: EventType): Boolean {
+        val params = TriggerParameters(event,  this)
+        @Suppress("UNCHECKED_CAST")  // TODO figure out if this can be worked around
+        return triggerDefinition.function.invoke(params as TriggerParameters<Nothing>)
     }
 }

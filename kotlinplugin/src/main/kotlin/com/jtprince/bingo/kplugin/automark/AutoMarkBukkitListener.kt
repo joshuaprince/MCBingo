@@ -1,15 +1,13 @@
 package com.jtprince.bingo.kplugin.automark
 
-import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.Messages
-import net.kyori.adventure.text.Component
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
-import java.util.HashMap
-import kotlin.reflect.KClass
+import org.spigotmc.event.entity.EntityMountEvent
 
 /**
  * Container for all Bukkit Event Listeners.
@@ -31,7 +29,7 @@ object AutoMarkBukkitListener : Listener {
         list -= eventTrigger
     }
 
-    private fun impulseEvent(event: Event) {
+    private fun <EventType: Event> impulseEvent(event: EventType) {
         val triggers = activeEventListenerMap[event.javaClass] ?: return
         for (trigger in triggers) {
             if (trigger.satisfiedBy(event)) {
@@ -41,12 +39,22 @@ object AutoMarkBukkitListener : Listener {
     }
 
     @EventHandler
-    fun onBlockBreak(event: BlockBreakEvent) {
+    fun on(event: BlockBreakEvent) {
         impulseEvent(event)
     }
 
     @EventHandler
-    fun onInventoryClose(event: InventoryCloseEvent) {
+    fun on(event: EntityDeathEvent) {
+        impulseEvent(event)
+    }
+
+    @EventHandler
+    fun on(event: EntityMountEvent) {
+        impulseEvent(event)
+    }
+
+    @EventHandler
+    fun on(event: InventoryCloseEvent) {
         impulseEvent(event)
     }
 }
