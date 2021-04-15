@@ -18,7 +18,7 @@ abstract class AutoMarkTrigger(
             callback: AutoMarkCallback
         ): Collection<AutoMarkTrigger> {
             return (EventTrigger.createEventTriggers(goalId, spaceId, variables, callback)
-                + ItemTrigger.createItemTriggers(goalId, spaceId, variables))
+                + ItemTrigger.createItemTriggers(goalId, spaceId, variables, callback))
         }
     }
 }
