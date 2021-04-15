@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.jtprince.bingo.kplugin.BingoPlugin
+import com.jtprince.bingo.kplugin.board.SetVariables
 import java.io.IOException
 import java.io.InputStream
 import java.util.logging.Level
@@ -67,11 +68,11 @@ class ItemTriggerYaml private constructor(
             return names.any { it.matches(name) }
         }
 
-        fun unique(setVariables: Map<String, Int>): Int {
+        fun unique(setVariables: SetVariables): Int {
             return unique.getValue(setVariables)
         }
 
-        fun total(setVariables: Map<String, Int>): Int {
+        fun total(setVariables: SetVariables): Int {
             return total.getValue(setVariables)
         }
     }
@@ -88,7 +89,7 @@ class ItemTriggerYaml private constructor(
             else -> null
         }
 
-        fun getValue(setVariables: Map<String, Int>): Int {
+        fun getValue(setVariables: SetVariables): Int {
             return constant ?: setVariables.getOrElse(name!!) {
                 throw RuntimeException("Unknown variable $name")
             }

@@ -26,10 +26,10 @@ class BingoPluginClass : JavaPlugin() {
 
         loadEventTriggers()
         ItemTrigger.createItemTriggers("jm_mushroom_stew", 3, mapOf("var" to 4), {
-            Messages.basicAnnounce("Satisfied space $it")
+            Messages.basicAnnounce("space $it")
         })
         EventTrigger.createEventTriggers("jm_never_boat", 2222, mapOf()) {
-            Messages.basicAnnounce("Satisfied space $it")
+            Messages.basicAnnounce("space $it")
         }
     }
 

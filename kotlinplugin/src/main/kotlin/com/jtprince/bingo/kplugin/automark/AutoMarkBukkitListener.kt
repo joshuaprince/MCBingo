@@ -1,6 +1,6 @@
 package com.jtprince.bingo.kplugin.automark
 
-import com.jtprince.bingo.kplugin.Messages
+import com.jtprince.bingo.kplugin.BingoPlugin
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -8,6 +8,8 @@ import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.spigotmc.event.entity.EntityMountEvent
+
+typealias BukkitListenerCallback = (event: Event) -> Unit
 
 /**
  * Container for all Bukkit Event Listeners.
@@ -17,24 +19,35 @@ import org.spigotmc.event.entity.EntityMountEvent
  * whenever that event occurs.
  */
 object AutoMarkBukkitListener : Listener {
-    private val activeEventListenerMap = HashMap<Class<out Event>, HashSet<EventTrigger>>()
+    private val activeEventListenerMap = HashMap<Class<out Event>, HashSet<BukkitListenerCallback>>()
+    private val identifierMap = HashMap<Int, Pair<Class<out Event>, BukkitListenerCallback>>()
 
-    fun register(eventTrigger: EventTrigger, eventType: Class<out Event>) {
+    private var lastId = 0
+
+    fun register(eventType: Class<out Event>, callback: BukkitListenerCallback): Int {
         val list = activeEventListenerMap.getOrPut(eventType) { hashSetOf() }
-        list += eventTrigger
+        list += callback
+
+        /* Give the caller a unique identifier that they can use to unregister */
+        val id = lastId++
+        identifierMap[id] = Pair(eventType, callback)
+        return id
     }
 
-    fun unregister(eventTrigger: EventTrigger, eventType: Class<out Event>) {
-        val list = activeEventListenerMap.getOrPut(eventType) { hashSetOf() }
-        list -= eventTrigger
+    fun unregister(registryId: Int) {
+        val idMapEntry = identifierMap.getOrElse(registryId) {
+            BingoPlugin.logger.severe("Tried to unregister unknown listener registry ID $registryId")
+            return
+        }
+
+        activeEventListenerMap[idMapEntry.first]!! -= idMapEntry.second
+        identifierMap.remove(registryId)
     }
 
     private fun <EventType: Event> impulseEvent(event: EventType) {
         val triggers = activeEventListenerMap[event.javaClass] ?: return
         for (trigger in triggers) {
-            if (trigger.satisfiedBy(event)) {
-                Messages.basicAnnounce("Satisfied trigger ${trigger.spaceId}")
-            }
+            trigger.invoke(event)
         }
     }
 

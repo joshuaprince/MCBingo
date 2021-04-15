@@ -25,13 +25,14 @@ open class EventTrigger internal constructor(
         }
     }
 
-    init {
-        @Suppress("LeakingThis")
-        AutoMarkBukkitListener.register(this, triggerDefinition.eventType)
+    private val listenerRegistryId = AutoMarkBukkitListener.register(triggerDefinition.eventType) {
+        if (satisfiedBy(it)) {
+            callback(spaceId)
+        }
     }
 
     fun destroy() {
-        AutoMarkBukkitListener.unregister(this, triggerDefinition.eventType)
+        AutoMarkBukkitListener.unregister(listenerRegistryId)
     }
 
     open fun <EventType: Event> satisfiedBy(event: EventType): Boolean {
