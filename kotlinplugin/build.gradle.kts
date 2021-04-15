@@ -41,7 +41,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>() {
 }
 
 tasks.processResources {
-    outputs.upToDateWhen { false }  // Fix caching in plugin.yml
+    inputs.property("gitVersion", version)  // Fix caching in plugin.yml
     filesMatching("plugin.yml") {
       expand(project.properties)
     }

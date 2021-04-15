@@ -2,6 +2,6 @@ name: MCBingo
 version: KT-${version}
 author: Joshua Prince
 website: "jtprince.com"
-main: com.jtprince.bingo.kplugin.BingoPlugin
+main: com.jtprince.bingo.kplugin.BingoPluginClass
 api-version: "1.13"
 load: STARTUP

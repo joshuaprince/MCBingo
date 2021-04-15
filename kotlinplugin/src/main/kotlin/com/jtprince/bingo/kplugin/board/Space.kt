@@ -8,5 +8,5 @@ abstract class Space {
     abstract val goalId: String
     abstract val goalType: String
     abstract val text: String
-    abstract val variables: Map<String, Int>
+    abstract val variables: SetVariables
 }

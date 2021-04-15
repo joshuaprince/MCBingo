@@ -93,7 +93,8 @@ object Commands {
 
         val debugCmd = CommandAPICommand("debug")
             .executesPlayer(PlayerCommandExecutor { sender: Player, _: Array<Any> ->
-                sender.sendMessage(Component.text("Mesg: ${Thread.currentThread().name}"))
+                val t = Thread.getAllStackTraces().map { it.key.name }.joinToString(separator = ", ")
+                sender.sendMessage(Component.text("Mesg: ${t}"))
             })
 
         val root = CommandAPICommand("bingo")
