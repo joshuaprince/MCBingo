@@ -1,12 +1,52 @@
 package com.jtprince.bingo.kplugin.board
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
+import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
+import com.jtprince.bingo.kplugin.game.PlayerManager
 
-@JsonDeserialize(`as` = WebSpace::class)  // TODO: It would be nice to have this out of this file
-abstract class Space {
-    abstract val spaceId: Int
-    abstract val goalId: String
-    abstract val goalType: String
-    abstract val text: String
-    abstract val variables: SetVariables
+class Space(
+    val spaceId: Int,
+    val goalId: String,
+    val goalType: String,
+    val text: String,
+    val variables: SetVariables,
+) {
+    enum class Marking(val value: Int) {
+        UNMARKED(0),
+        COMPLETE(1),
+        REVERTED(2),
+        INVALIDATED(3),
+        NOT_INVALIDATED(4);
+
+        companion object {
+            private val map = values().associateBy(Marking::value)
+            fun valueOf(value: Int) = map[value] ?:
+                throw IllegalArgumentException("Unknown Marking value $value")
+        }
+    }
+
+    private lateinit var triggers: Collection<AutoMarkTrigger>
+
+    val automarking: Boolean
+        get() = triggers.isNotEmpty()
+
+    /**
+     * Receive callbacks when a player in this [PlayerManager] does something that should mark the
+     * space.
+     */
+    fun startListening(playerManager: PlayerManager, callback: AutoMarkCallback) {
+        triggers = AutoMarkTrigger.createForGoal(
+            goalId, spaceId, variables, playerManager, callback)
+    }
+
+    /**
+     * Stop receiving callbacks for all players on this space.
+     */
+    fun stopListening() {
+        triggers.forEach(AutoMarkTrigger::destroy)
+    }
+
+    fun destroy() {
+        stopListening()
+    }
 }

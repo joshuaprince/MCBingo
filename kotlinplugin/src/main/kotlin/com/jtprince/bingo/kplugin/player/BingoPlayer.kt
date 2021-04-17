@@ -1,6 +1,7 @@
 package com.jtprince.bingo.kplugin.player
 
 import net.kyori.adventure.text.Component
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 abstract class BingoPlayer {
@@ -15,10 +16,15 @@ abstract class BingoPlayer {
     abstract val formattedName: Component
 
     /**
-     * A list of {@link org.bukkit.entity.Player}s that are online playing as this BingoPlayer.
+     * A list of [Player]s that are online playing as this BingoPlayer.
      * If no Bukkit Players playing as this BingoPlayer are online, returns an empty collection.
      */
     abstract val bukkitPlayers: Collection<Player>
+
+    /**
+     * A list of [OfflinePlayer]s that are playing as this BingoPlayer.
+     */
+    abstract val offlinePlayers: Collection<OfflinePlayer>
 
     /**
      * The Player's name with Spaces stripped out.

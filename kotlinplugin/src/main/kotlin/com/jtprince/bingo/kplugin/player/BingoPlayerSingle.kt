@@ -21,4 +21,7 @@ class BingoPlayerSingle(player: OfflinePlayer) : BingoPlayer() {
 
     override val bukkitPlayers: Collection<Player>
         get() = setOfNotNull(Bukkit.getPlayer(playerUUID))
+
+    override val offlinePlayers: Collection<OfflinePlayer>
+        get() = setOfNotNull(Bukkit.getOfflinePlayer(playerUUID))
 }

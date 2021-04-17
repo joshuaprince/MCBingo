@@ -1,34 +1,35 @@
 package com.jtprince.bingo.kplugin.automark
 
 import com.jtprince.bingo.kplugin.board.SetVariables
+import com.jtprince.bingo.kplugin.game.PlayerManager
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.ItemStack
+import kotlin.math.min
 
 class ItemTrigger private constructor(
     goalId: String,
     spaceId: Int,
     variables: SetVariables,
+    playerManager: PlayerManager,
     callback: AutoMarkCallback,
     private val rootMatchGroup: ItemTriggerYaml.MatchGroup,
-) : EventTrigger(goalId, spaceId, variables, callback, closeEvent) {
+) : EventTrigger(goalId, spaceId, variables, playerManager, callback, closeEvent) {
     companion object {
-        fun createItemTriggers(goalId: String,
-                               spaceId: Int,
-                               variables: SetVariables,
-                               callback: AutoMarkCallback,
+        fun createItemTriggers(goalId: String, spaceId: Int, variables: SetVariables,
+                               playerManager: PlayerManager, callback: AutoMarkCallback,
                                yml: ItemTriggerYaml = ItemTriggerYaml.defaultYaml
         ): Collection<ItemTrigger> {
             val matchGroup = yml[goalId] ?: return emptySet()
-            return setOf(ItemTrigger(goalId, spaceId, variables, callback, matchGroup))
+            return setOf(ItemTrigger(goalId, spaceId, variables, playerManager, callback, matchGroup))
         }
 
-        val closeEvent = EventTriggerDefinition(InventoryCloseEvent::class.java) {
+        val closeEvent = EventTriggerDefinition(InventoryCloseEvent::class) {
             it.trigger.satisfiedBy(it.event)
         }
     }
 
-    override fun <EventType: Event> satisfiedBy(event: EventType): Boolean {
+    override fun satisfiedBy(event: Event): Boolean {
         if (event !is InventoryCloseEvent) return false
 
         val rootUT = effectiveUT(rootMatchGroup, event.player.inventory.contents.filterNotNull())
@@ -63,7 +64,7 @@ class ItemTrigger private constructor(
                 }
                 seenItemNames.add(namespacedName)
             }
-            ret.t = Math.min(matchGroup.total(variables), ret.t + itemStack.amount)
+            ret.t = min(matchGroup.total(variables), ret.t + itemStack.amount)
         }
 
         for (child in matchGroup.children) {

@@ -5,16 +5,26 @@ import com.jtprince.bingo.kplugin.WorldManager
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import com.jtprince.bingo.kplugin.player.BingoPlayerRemote
 import org.bukkit.OfflinePlayer
+import org.bukkit.World
 import org.bukkit.entity.Player
 
 /**
  * Single-game container for all players in that game and functionality relating to them.
  */
-class PlayerManager() {
-    private val localPlayersMap = HashMap<OfflinePlayer, BingoPlayer>()
+class PlayerManager(localPlayers: Collection<BingoPlayer>) {
+    private val localPlayersMap: HashMap<OfflinePlayer, BingoPlayer> = run {
+        val ret = HashMap<OfflinePlayer, BingoPlayer>()
+        for (p in localPlayers) {
+            for (op in p.offlinePlayers) {
+                ret[op] = p
+            }
+        }
+        ret
+    }
     private val remotePlayers = HashSet<BingoPlayer>()
 
     private val playerWorldSetMap = HashMap<BingoPlayer, WorldManager.WorldSet>()
+    private val worldPlayerMap = HashMap<World, BingoPlayer>()
 
     /**
      * A list of BingoPlayers that are participating in this game. This includes all
@@ -65,6 +75,15 @@ class PlayerManager() {
     }
 
     /**
+     * Find which BingoPlayer is associated to a World on the server.
+     * @param world The World to check.
+     * @return The BingoPlayer object, or null if this World is not part of this game.
+     */
+    fun bingoPlayer(world: World): BingoPlayer? {
+        return worldPlayerMap[world]
+    }
+
+    /**
      * Find the set of worlds this Bingo Player is given to play in for this game.
      * @param player A Local BingoPlayer.
      * @return The player's WorldSet, or null if the player does not have one.
@@ -88,9 +107,11 @@ class PlayerManager() {
             return
         }
 
-        playerWorldSetMap[player] = WorldManager.createWorlds(
-            "${gameCode}_${player.slugName}", gameCode
-        )
+        val worldSet = WorldManager.createWorlds("${gameCode}_${player.slugName}", gameCode)
+        playerWorldSetMap[player] = worldSet
+        for (w in worldSet.worlds) {
+            worldPlayerMap[w] = player
+        }
     }
 
     /**

@@ -7,13 +7,14 @@ import org.bukkit.event.Event
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.spigotmc.event.entity.EntityMountEvent
+import kotlin.reflect.KClass
 
 /**
  * Container for a static mapping from (a goal ID and an event type) to the condition that the
  * event must fulfill for that goal to be achieved.
  */
 class EventTriggerDefinition<EventType: Event>(
-    val eventType: Class<EventType>,
+    val eventType: KClass<EventType>,
     val function: (TriggerParameters<out EventType>) -> Boolean
 ) {
     companion object {
@@ -41,7 +42,7 @@ internal inline fun <reified EventType : Event> trigger(
 ) {
     for (goalId in goalIds) {
         EventTriggerDefinition.registry.getOrPut(goalId) { hashSetOf() } +=
-            EventTriggerDefinition(EventType::class.java, check)
+            EventTriggerDefinition(EventType::class, check)
     }
 }
 

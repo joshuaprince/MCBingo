@@ -1,7 +1,8 @@
 package com.jtprince.bingo.kplugin
 
 import com.jtprince.bingo.kplugin.game.BingoGame
-import com.jtprince.bingo.kplugin.game.WebBackedBingoGame
+import com.jtprince.bingo.kplugin.game.WebBackedGame
+import com.jtprince.bingo.kplugin.game.WebBackedGameProto
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import com.jtprince.bingo.kplugin.player.BingoPlayerSingle
 import com.jtprince.bingo.kplugin.player.BingoPlayerTeam
@@ -25,11 +26,15 @@ object GameManager {
         currentGame = null
     }
 
-    fun prepareNewWebGame(creator: CommandSender, settings: WebBackedBingoGame.GameSettings) {
+    fun prepareNewWebGame(creator: CommandSender,
+                          settings: WebBackedGameProto.WebGameSettings) {
         destroyCurrentGame()
-        val newGame = WebBackedBingoGame(creator, settings, createBingoPlayers())
+        val newGame = WebBackedGameProto(creator, settings)
         currentGame = newGame
-        newGame.generateBoard()
+
+        newGame.generateBoard { gameCode ->
+            currentGame = WebBackedGame(creator, gameCode, createBingoPlayers())
+        }
     }
 
     fun startGame() {

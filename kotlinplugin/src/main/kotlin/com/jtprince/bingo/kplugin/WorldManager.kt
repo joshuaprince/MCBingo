@@ -19,14 +19,14 @@ object WorldManager {
     internal val worldSetNameMap = HashMap<String, WorldSet>()
     internal val worldSetWorldMap = HashMap<World, WorldSet>()
 
-    public val spawnWorld: World
+    val spawnWorld: World
         get() = Bukkit.getWorlds()[0]
 
     /**
      * Create an Overworld, Nether, and End, identified by `worldCode`, that link to each other by
      * portals.
      */
-    public fun createWorlds(worldCode: String, seed: String): WorldSet {
+    fun createWorlds(worldCode: String, seed: String): WorldSet {
         val envWorldMap = HashMap<World.Environment, World>()
 
         ENVIRONMENTS.onEachIndexed { index, (env, dim) ->
@@ -55,8 +55,9 @@ object WorldManager {
     class WorldSet internal constructor(private val worldSetCode: String,
                                         private val map: Map<World.Environment, World>) {
         internal fun world(env: World.Environment) = map[env]
+        val worlds: Collection<World> = map.values
 
-        public fun unloadWorlds() {
+        fun unloadWorlds() {
             BingoPlugin.logger.info("Unloading WorldSet $worldSetCode")
 
             for (env in ENVIRONMENTS.keys) {
@@ -73,7 +74,7 @@ object WorldManager {
         }
     }
 
-    public object WorldManagerListener : Listener {
+    object WorldManagerListener : Listener {
         @EventHandler
         fun onPortal(event: PlayerPortalEvent) {
             val ws: WorldSet = worldSetWorldMap[event.from.world] ?: return

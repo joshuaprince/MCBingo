@@ -2,66 +2,43 @@ package com.jtprince.bingo.kplugin
 
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import io.ktor.http.*
-import java.net.MalformedURLException
-import java.net.URI
-import java.net.URISyntaxException
-import java.util.logging.Level
 
 object BingoConfig {
     val debug: Boolean
         get() = BingoPlugin.config.getBoolean("debug", false)
 
-    fun gameUrl(gameCode: String, forPlayer: BingoPlayer): Url? {
-        val template: String? = BingoPlugin.config.getString("web_url")
-        if (template == null) {
-            BingoPlugin.logger.severe("No web_url is configured!")
-            return null
-        }
+    val webUrl: String by lazy {
+        BingoPlugin.config.getString("web_url") ?: throw NoSuchFieldException("No web_url is configured!")
+    }
 
-        try {
-            val builder = URLBuilder(template)
-            builder.path("game", gameCode)
-            builder.parameters["name"] = forPlayer.name
-            return builder.build()
-        } catch (e: URISyntaxException) {
-            BingoPlugin.logger.log(Level.SEVERE, "Misconfigured web_url", e)
-        } catch (e: MalformedURLException) {
-            BingoPlugin.logger.log(Level.SEVERE, "Misconfigured web_url", e)
-        }
+    fun boardCreateUrl(): Url {
+        val builder = URLBuilder(webUrl)
+        builder.path("rest", "generate_board")
+        return builder.build()
+    }
 
-        return null
+    fun gameUrl(gameCode: String, forPlayer: BingoPlayer): Url {
+        val builder = URLBuilder(webUrl)
+        builder.path("game", gameCode)
+        builder.parameters["name"] = forPlayer.name
+        return builder.build()
     }
 
     val saveWorlds: Boolean
         get() = BingoPlugin.config.getBoolean("save_worlds", true)
-/*
-    fun websocketUrl(gameCode: String, players: Collection<BingoPlayer>): URI? {
-        val template: String? = BingoPlugin.config.getString("web_url")
-        if (template == null) {
-            BingoPlugin.logger.severe("No web_url is configured!")
-            return null
+
+    fun websocketUrl(gameCode: String, players: Collection<BingoPlayer>): Url {
+        val playersStr = players.map(BingoPlayer::slugName).joinToString(",")
+        val clientId = "KotlinPlugin${hashCode() % 10000}:${playersStr}"
+
+        val builder = URLBuilder(webUrl)
+        builder.path("ws", "board-plugin", gameCode, clientId)
+        builder.protocol = when(builder.protocol) {
+            URLProtocol.HTTP -> URLProtocol.WS
+            URLProtocol.HTTPS -> URLProtocol.WSS
+            else -> throw IllegalArgumentException("Invalid web URL protocol ${builder.protocol}")
         }
 
-        try {
-            val builder = URIBuilder(template)
-            when {
-                builder.scheme.equals("https", ignoreCase = true) -> {
-                    builder.scheme = "wss"
-                }
-                builder.scheme.equals("http", ignoreCase = true) -> {
-                    builder.scheme = "ws"
-                }
-                else -> {
-                    throw URISyntaxException(template, "Scheme must be http or https")
-                }
-            }
-
-            val clientId = "Plugin:" + java.lang.String.join(",", players.map(BingoPlayer::slugName))
-            builder.setPathSegments("ws", "board-plugin", gameCode, clientId)
-            return builder.build()
-        } catch (e: URISyntaxException) {
-            BingoPlugin.logger.log(Level.SEVERE, "Misconfigured web_url", e)
-            return null
-        }
-    }*/
+        return builder.build()
+    }
 }

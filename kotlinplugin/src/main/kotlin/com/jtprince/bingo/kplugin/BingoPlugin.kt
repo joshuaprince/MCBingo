@@ -21,16 +21,18 @@ class BingoPluginClass : JavaPlugin() {
         Commands.registerCommands()
         saveDefaultConfig()
 
-//        server.pluginManager.registerEvent(Event::class.java, AutoMarkBukkitListener, EventPriority.MONITOR, this)
+        BingoConfig.webUrl  // Will throw if misconfigured
+
         server.pluginManager.registerEvents(AutoMarkBukkitListener, this)
+        server.pluginManager.registerEvents(WorldManager.WorldManagerListener, this)
 
         loadEventTriggers()
-        ItemTrigger.createItemTriggers("jm_mushroom_stew", 3, mapOf("var" to 4), {
-            Messages.basicAnnounce("space $it")
-        })
-        EventTrigger.createEventTriggers("jm_never_boat", 2222, mapOf()) {
-            Messages.basicAnnounce("space $it")
-        }
+//        ItemTrigger.createItemTriggers("jm_mushroom_stew", 3, mapOf("var" to 4), {
+//            Messages.basicAnnounce("space $it")
+//        })
+//        EventTrigger.createEventTriggers("jm_never_boat", 2222, mapOf()) {
+//            Messages.basicAnnounce("space $it")
+//        }
     }
 
     override fun onLoad() {

@@ -21,7 +21,10 @@ dependencies {
     shadow("com.destroystokyo.paper", "paper-api", "1.16.5-R0.1-SNAPSHOT")
 
     implementation(kotlin("stdlib"))
+    implementation("io.ktor", "ktor-client-core", "1.5.3")
     implementation("io.ktor", "ktor-client-websockets", "1.5.3")
+    implementation("io.ktor", "ktor-client-cio", "1.5.3")
+    implementation("io.ktor", "ktor-client-jackson", "1.5.3")
     implementation("dev.jorel", "commandapi-shade", "5.9")
     implementation("com.fasterxml.jackson.core", "jackson-core", "2.12.2")
     implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", "2.12.2")
@@ -29,6 +32,7 @@ dependencies {
 
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+    testImplementation("com.destroystokyo.paper", "paper-api", "1.16.5-R0.1-SNAPSHOT")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
 }
 

@@ -2,6 +2,7 @@ package com.jtprince.bingo.kplugin.player
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 /**
@@ -14,5 +15,7 @@ class BingoPlayerRemote(override val name: String) : BingoPlayer() {
         get() = Component.text(name)
 
     override val bukkitPlayers: Collection<Player>
+        get() = emptySet()
+    override val offlinePlayers: Collection<OfflinePlayer>
         get() = emptySet()
 }

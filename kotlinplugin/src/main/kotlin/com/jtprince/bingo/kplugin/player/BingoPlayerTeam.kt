@@ -22,4 +22,7 @@ class BingoPlayerTeam(private val teamName: Component,
 
     override val bukkitPlayers: Collection<Player>
         get() = playerUuids.mapNotNull(Bukkit::getPlayer).filter(OfflinePlayer::isOnline)
+
+    override val offlinePlayers: Collection<OfflinePlayer>
+        get() = playerUuids.map(Bukkit::getOfflinePlayer)
 }

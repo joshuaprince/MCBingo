@@ -78,15 +78,17 @@ class ItemTriggerYaml private constructor(
     }
 
     internal class Variable(yamlVarValue: String?, defaultConstant: Int) {
-        val name: String? = when {
-            yamlVarValue == null -> null
-            yamlVarValue.startsWith("$") -> yamlVarValue.substring(1)
-            else -> null
-        }
+        private val name: String?
+        private val constant: Int?
 
-        private val constant: Int? = when (yamlVarValue) {
-            null -> defaultConstant
-            else -> null
+        init {
+            if (yamlVarValue?.startsWith("$") == true) {
+                name = yamlVarValue.substring(1)
+                constant = null
+            } else {
+                name = null
+                constant = yamlVarValue?.toIntOrNull() ?: defaultConstant
+            }
         }
 
         fun getValue(setVariables: SetVariables): Int {
