@@ -23,7 +23,7 @@ class EventTrigger internal constructor(
     playerManager: PlayerManager,
     callback: AutoMarkCallback,
     private val triggerDefinition: EventTriggerDefinition<*>,
-) : AutoMarkTrigger(goalId, spaceId, variables, callback, playerManager) {
+) : AutoMarkTrigger(goalId, spaceId, variables, playerManager, callback) {
 
     companion object {
         fun createEventTriggers(goalId: String, spaceId: Int, variables: SetVariables,
@@ -33,7 +33,7 @@ class EventTrigger internal constructor(
             eventTriggerRegistry[goalId]?.forEach {
                 ret += EventTrigger(goalId, spaceId, variables, playerManager, callback, it)
             }
-            return ret
+            return ret.toSet()
         }
 
         val allAutomatedGoals

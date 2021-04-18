@@ -38,6 +38,8 @@ class DebugGame(creator: Player,
     }
 
     override fun receiveAutomark(bingoPlayer: BingoPlayer, spaceId: Int, satisfied: Boolean) {
-        Messages.basicTell(bingoPlayer, "You have activated $goalId.")
+        if (satisfied) {
+            Messages.basicTell(bingoPlayer, "You have activated $goalId.")
+        }
     }
 }

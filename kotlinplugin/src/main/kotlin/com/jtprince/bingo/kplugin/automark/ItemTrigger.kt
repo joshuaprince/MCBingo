@@ -6,14 +6,15 @@ import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 import kotlin.math.min
 
-class ItemTrigger private constructor(
+open class ItemTrigger protected constructor(
     goalId: String,
     spaceId: Int,
     variables: SetVariables,
     playerManager: PlayerManager,
     callback: AutoMarkCallback,
-    private val rootMatchGroup: ItemTriggerYaml.MatchGroup,
-) : AutoMarkTrigger(goalId, spaceId, variables, callback, playerManager) {
+    private val rootMatchGroup: ItemTriggerYaml.MatchGroup?,
+) : AutoMarkTrigger(goalId, spaceId, variables, playerManager, callback) {
+
     companion object {
         fun createItemTriggers(goalId: String, spaceId: Int, variables: SetVariables,
                                playerManager: PlayerManager, callback: AutoMarkCallback,
@@ -47,7 +48,8 @@ class ItemTrigger private constructor(
     /**
      * Returns whether a set of items meets the criteria for this Item Trigger.
      */
-    private fun satisfiedBy(inventory: Collection<ItemStack>): Boolean {
+    protected open fun satisfiedBy(inventory: Collection<ItemStack>): Boolean {
+        val rootMatchGroup = rootMatchGroup ?: return false
         val rootUT = effectiveUT(rootMatchGroup, inventory)
         return rootUT.u >= rootMatchGroup.unique(variables)
                 && rootUT.t >= rootMatchGroup.total(variables)

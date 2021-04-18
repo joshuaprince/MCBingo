@@ -174,7 +174,7 @@ object Commands {
     private fun commandDebug(sender: Player, args: Array<String>) {
         val vars = HashMap<String, Int>()
         // TODO: Document this pattern
-        val varArgs = args[1].split(" ")
+        val varArgs = if (args.size > 1) args[1].split(" ") else emptyList()
         for (i in 0 until varArgs.size-1 step 2) {
             vars[varArgs[i]] = varArgs[i+1].toInt()
         }

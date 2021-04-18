@@ -1,12 +1,6 @@
 package com.jtprince.bingo.kplugin.automark
 
-import org.bukkit.entity.Boat
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.Player
 import org.bukkit.event.Event
-import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.entity.EntityDeathEvent
-import org.spigotmc.event.entity.EntityMountEvent
 import kotlin.reflect.KClass
 
 /**
@@ -23,7 +17,7 @@ class EventTriggerDefinition<EventType: Event>(
  */
 class TriggerParameters<EventType: Event>(
     val event: EventType,
-    val trigger: EventTrigger,
+    trigger: EventTrigger,
 ) {
     val vars = trigger.variables
 }
