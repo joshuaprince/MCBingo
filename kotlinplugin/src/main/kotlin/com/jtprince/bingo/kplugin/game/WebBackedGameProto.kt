@@ -46,7 +46,6 @@ class WebBackedGameProto(
     )
 
     fun generateBoard(whenDone: (gameCode: String) -> Unit) {
-        Messages.basicTell(creator, "Test.")
         Bukkit.getScheduler().runTaskAsynchronously(BingoPlugin) { -> runBlocking {
             Messages.basicTell(creator, "Generating a new board.")
 
@@ -66,6 +65,7 @@ class WebBackedGameProto(
     }
 
     override fun destroy() {
+        super.destroy()
         httpClient.close()
     }
 

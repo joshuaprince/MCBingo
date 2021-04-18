@@ -36,9 +36,10 @@ class WebBackedWebsocketClient(
     fun destroy() {
         shouldReconnect = false
         client.close()
+        BingoPlugin.logger.severe("Websocket closed for game $gameCode")
     }
 
-    fun connect() {
+    fun connect(onSuccess: () -> Unit) {
         Bukkit.getScheduler().runTaskAsynchronously(BingoPlugin) { -> runBlocking {
             var connectedBefore = false
             while (shouldReconnect) {
@@ -47,7 +48,10 @@ class WebBackedWebsocketClient(
                 try {
                     client.ws(url.toString()) {
                         BingoPlugin.logger.info("Successfully connected to game $gameCode.")
-                        connectedBefore = true
+                        if (!connectedBefore) {
+                            connectedBefore = true
+                            onSuccess()
+                        }
                         connectAttemptsRemaining = 10
                         val rxJob = launch { rxLoop() }
                         val txJob = launch { txLoop() }

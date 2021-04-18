@@ -11,8 +11,10 @@ abstract class BingoGame(
 ) {
     enum class State {
         BOARD_GENERATING,
-        PREPARING,
+        WAITING_FOR_WEBSOCKET,
+        WORLDS_GENERATING,
         READY,
+        COUNTING_DOWN,
         RUNNING,
         DONE,
         FAILED,
@@ -23,7 +25,9 @@ abstract class BingoGame(
     val playerManager = PlayerManager(players)
     val spaces = HashMap<Int, Space>()
 
-    open fun destroy() { }
+    open fun destroy() {
+        playerManager.destroy()
+    }
 
     abstract fun signalStart()
     abstract fun signalEnd()

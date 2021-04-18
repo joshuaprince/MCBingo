@@ -9,6 +9,7 @@ import com.jtprince.bingo.kplugin.webclient.WebBackedWebsocketClient
 import com.jtprince.bingo.kplugin.webclient.WebsocketRxMessage
 import com.jtprince.bingo.kplugin.webclient.model.WebModelBoard
 import com.jtprince.bingo.kplugin.webclient.model.WebModelPlayerBoard
+import org.bukkit.GameMode
 import org.bukkit.command.CommandSender
 
 class WebBackedGame(
@@ -17,18 +18,58 @@ class WebBackedGame(
     players: Collection<BingoPlayer>
 ) : BingoGame(creator, gameCode, players) {
 
-    override var state: State = State.PREPARING
+    override var state: State = State.WAITING_FOR_WEBSOCKET
     private val websocketClient = WebBackedWebsocketClient(
         gameCode, BingoConfig.websocketUrl(gameCode, players), this::receiveMessage,
         this::receiveFailedConnection)
     private val playerBoardCache = players.associateWith(::PlayerBoardCache)
 
+    /* Both of the following must be ready for the game to be put in the "READY" state */
+    private var websocketReady = false
+    private var worldsReady = false
+
+    private val startEffects = GameStartEffects(playerManager) {
+        state = State.RUNNING
+        websocketClient.sendRevealBoard()
+    }
+
     init {
-        websocketClient.connect()
+        websocketClient.connect {
+            websocketReady = true
+            tryToMoveToReady()
+        }
+        generateWorlds()
     }
 
     override fun destroy() {
+        super.destroy()
+        Messages.basicAnnounce("The game is over, returning you to the spawn world!")
         websocketClient.destroy()
+    }
+
+    private fun generateWorlds() {
+        BingoPlugin.server.scheduler.runTask(BingoPlugin) { ->
+            Messages.announcePreparingGame(gameCode)
+            val players = playerManager.localPlayers
+            for (p in players) {
+                playerManager.prepareWorldSet(gameCode, p)
+            }
+            BingoPlugin.logger.info("Finished generating " + players.size + " worlds")
+            Messages.announceWorldsGenerated(players)
+            worldsReady = true
+            tryToMoveToReady()
+        }
+    }
+
+    private fun tryToMoveToReady() {
+        when {
+            !websocketReady -> state = State.WAITING_FOR_WEBSOCKET
+            !worldsReady -> state = State.WORLDS_GENERATING
+            else -> {
+                state = State.READY
+                Messages.announceGameReady(gameCode, playerManager.localPlayers, creator)
+            }
+        }
     }
 
     override fun signalStart() {
@@ -40,10 +81,10 @@ class WebBackedGame(
     }
 
     override fun receiveAutomark(bingoPlayer: BingoPlayer, spaceId: Int, marking: Space.Marking) {
+        if (state != State.RUNNING) return
+
         /* Not filtered - first must filter to ensure no excessive backend requests. */
-        if (playerBoardCache[bingoPlayer]?.canSendMarking(spaceId, marking) != true) {
-            return
-        }
+        if (playerBoardCache[bingoPlayer]?.canSendMarking(spaceId, marking) != true) return
 
         websocketClient.sendMarkSpace(bingoPlayer.name, spaceId, marking.value)
     }
@@ -51,6 +92,7 @@ class WebBackedGame(
     private fun receiveMessage(msg: WebsocketRxMessage) {
         msg.board?.run(this::receiveBoard)
         msg.pboards?.run(this::receivePlayerBoards)
+        msg.gameState?.run(this::receiveGameStateTransition)
     }
 
     private fun receiveFailedConnection() {
@@ -88,6 +130,36 @@ class WebBackedGame(
             // TODO Do we even need remote players any more?
             val player = playerManager.bingoPlayer(pb.playerName, false) ?: continue
             playerBoardCache[player]?.updateFromWeb(pb)
+        }
+    }
+
+    private fun receiveGameStateTransition(newGameState: String) {
+        when (newGameState) {
+            "start" -> {
+                if (state != State.READY) {
+                    BingoPlugin.logger.warning(
+                        "Web backend sent a Start Game message when game is not ready. Ignoring.")
+                    return
+                }
+
+                state = State.COUNTING_DOWN
+                startEffects.doStartEffects()
+            }
+            "end" -> {
+                if (state != State.RUNNING && state != State.COUNTING_DOWN) {
+                    BingoPlugin.logger.warning(
+                        "Web backend sent an End Game message when game is not running. Ignoring.")
+                    return
+                }
+
+                state = State.DONE
+                Messages.basicAnnounce("The game has ended!")
+                startEffects.doEndEffects()
+            }
+            else -> {
+                BingoPlugin.logger.severe(
+                    "Web backend sent an unrecognized game state transition: $newGameState")
+            }
         }
     }
 }

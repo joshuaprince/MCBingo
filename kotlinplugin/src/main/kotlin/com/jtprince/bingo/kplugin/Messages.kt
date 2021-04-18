@@ -1,6 +1,5 @@
 package com.jtprince.bingo.kplugin
 
-import com.jtprince.bingo.kplugin.game.BingoGame
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import com.jtprince.bingo.kplugin.player.BingoPlayerTeam
 import com.jtprince.util.ChatUtils
@@ -46,10 +45,10 @@ object Messages {
         announceWithHeader(Component.text(msg))
     }
 
-    fun announcePreparingGame(game: BingoGame) {
+    fun announcePreparingGame(gameCode: String) {
         var component: TextComponent = Component
             .text("Generating worlds for new game ")
-            .append(Component.text(game.gameCode).color(NamedTextColor.BLUE))
+            .append(Component.text(gameCode).color(NamedTextColor.BLUE))
             .append(Component.text("."))
         announceWithHeader(component)
         component = Component.text("This will cause the server to lag!")
@@ -76,23 +75,15 @@ object Messages {
         var component: TextComponent
         for (p in players) {
             // Game link for this specific player
-            val url: Url? = BingoConfig.gameUrl(gameCode, p)
-            component = if (url == null) {
-                Component
-                    .text(
-                    "Could not get the board to link you to! Contact the server admin "
-                                + "to update the plugin's config.yml.")
-                    .color(NamedTextColor.RED)
-            } else {
-                Component.empty()
-                    .append(
-                        Component.text("[Open Board]")
-                            .decoration(TextDecoration.UNDERLINED, true)
-                            .color(NamedTextColor.YELLOW)
-                            .hoverEvent(Component.text(url.toString()))
-                            .clickEvent(ClickEvent.openUrl(URL(url.toString())))
-                    )
-            }
+            val url: Url = BingoConfig.gameUrl(gameCode, p)
+            component = Component.empty()
+                .append(
+                    Component.text("[Open Board]")
+                        .decoration(TextDecoration.UNDERLINED, true)
+                        .color(NamedTextColor.YELLOW)
+                        .hoverEvent(Component.text(url.toString()))
+                        .clickEvent(ClickEvent.openUrl(URL(url.toString())))
+                )
             for (bukkitPlayer in p.bukkitPlayers) {
                 sendWithHeader(bukkitPlayer, component)
             }

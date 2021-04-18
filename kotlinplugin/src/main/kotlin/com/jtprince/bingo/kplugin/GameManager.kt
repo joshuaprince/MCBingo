@@ -37,17 +37,8 @@ object GameManager {
         }
     }
 
-    fun startGame() {
-        val curGame = currentGame
-        if (curGame == null || curGame.state != BingoGame.State.READY) {
-            BingoPlugin.logger.log(Level.SEVERE,
-                "Call to startGame while game not ready - this should have been protected" +
-                        " at a higher level.")
-        }
-    }
-
     private fun createBingoPlayers(): Collection<BingoPlayer> {
-        val ret = HashSet<BingoPlayer>();
+        val ret = HashSet<BingoPlayer>()
 
         // Create a mapping from Player -> Team (or null)
         val playerTeamMap = HashMap<Player, Team?>()

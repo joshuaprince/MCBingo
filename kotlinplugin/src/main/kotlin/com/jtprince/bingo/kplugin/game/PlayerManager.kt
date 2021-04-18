@@ -23,7 +23,7 @@ class PlayerManager(localPlayers: Collection<BingoPlayer>) {
     }
     private val remotePlayers = HashSet<BingoPlayer>()
 
-    private val playerWorldSetMap = HashMap<BingoPlayer, WorldManager.WorldSet>()
+    val playerWorldSetMap = HashMap<BingoPlayer, WorldManager.WorldSet>()
     private val worldPlayerMap = HashMap<World, BingoPlayer>()
 
     /**

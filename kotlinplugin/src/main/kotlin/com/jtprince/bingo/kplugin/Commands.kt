@@ -128,16 +128,21 @@ object Commands {
             return
         }
 
-        GameManager.startGame()
+        game.signalStart()
     }
 
     private fun commandEnd(sender: CommandSender) {
-        if (GameManager.currentGame == null) {
+        val game = GameManager.currentGame ?: run {
             Messages.basicTell(sender, "No game is running!")
             return
         }
 
-        GameManager.destroyCurrentGame()
+        if (game.state != BingoGame.State.RUNNING) {
+            Messages.basicTell(sender, "Game is not running!")
+            return
+        }
+
+        game.signalEnd()
     }
 
     private fun commandGo(sender: Player, destination: BingoPlayer?) {
@@ -156,6 +161,6 @@ object Commands {
     }
 
     private fun commandDebug(sender: Player, args: Array<String>) {
-        GameManager.currentGame?.signalStart()
+
     }
 }
