@@ -20,12 +20,13 @@ abstract class AutoMarkTrigger(
         ): Collection<AutoMarkTrigger> {
             return (EventTrigger.createEventTriggers(goalId, spaceId, variables, playerManager, callback)
                 + ItemTrigger.createItemTriggers(goalId, spaceId, variables, playerManager, callback)
-                + SpecialItemTrigger.createSpecialItemTriggers(goalId, spaceId, variables, playerManager, callback))
+                + SpecialItemTrigger.createSpecialItemTriggers(goalId, spaceId, variables, playerManager, callback)
+                + OccasionalTrigger.createOccasionalTriggers(goalId, spaceId, variables, playerManager, callback))
         }
 
         val allAutomatedGoals
             get() = EventTrigger.allAutomatedGoals + ItemTrigger.allAutomatedGoals +
-                    SpecialItemTrigger.allAutomatedGoals
+                    SpecialItemTrigger.allAutomatedGoals + OccasionalTrigger.allAutomatedGoals
     }
 
     /**
