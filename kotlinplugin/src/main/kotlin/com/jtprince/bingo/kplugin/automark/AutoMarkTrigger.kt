@@ -5,7 +5,7 @@ import com.jtprince.bingo.kplugin.board.Space
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 
-typealias AutoMarkCallback = (BingoPlayer, spaceId: Int, Space.Marking) -> Unit
+typealias AutoMarkCallback = (BingoPlayer, spaceId: Int, fulfilled: Boolean) -> Unit
 
 abstract class AutoMarkTrigger(
     val goalId: String,
@@ -22,6 +22,12 @@ abstract class AutoMarkTrigger(
                 + ItemTrigger.createItemTriggers(goalId, spaceId, variables, playerManager, callback))
         }
     }
+
+    /**
+     * If (and only if) revertible is true, the AutoMarkCallback may be called with
+     * fulfilled == false. In this case, the callback should put the goal into a "reverted" state.
+     */
+    abstract val revertible: Boolean
 
     abstract fun destroy()
 }

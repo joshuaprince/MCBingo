@@ -3,6 +3,7 @@ package com.jtprince.bingo.kplugin.player
 import net.kyori.adventure.text.Component
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 
 abstract class BingoPlayer {
     /**
@@ -25,6 +26,12 @@ abstract class BingoPlayer {
      * A list of [OfflinePlayer]s that are playing as this BingoPlayer.
      */
     abstract val offlinePlayers: Collection<OfflinePlayer>
+
+    /**
+     * The list of [ItemStack]s made up of the collective of all online players' inventories.
+     */
+    val inventory: Collection<ItemStack>
+        get() = bukkitPlayers.map { p -> p.inventory + p.itemOnCursor }.flatten().filterNotNull()
 
     /**
      * The Player's name with Spaces stripped out.

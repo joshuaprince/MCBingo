@@ -41,8 +41,7 @@ class WebBackedGame(
         generateWorlds()
     }
 
-    override fun destroy() {
-        super.destroy()
+    override fun destroyGame() {
         Messages.basicAnnounce("The game is over, returning you to the spawn world!")
         websocketClient.destroy()
     }
@@ -80,13 +79,18 @@ class WebBackedGame(
         websocketClient.sendEndGame()
     }
 
-    override fun receiveAutomark(bingoPlayer: BingoPlayer, spaceId: Int, marking: Space.Marking) {
+    override fun receiveAutomark(bingoPlayer: BingoPlayer, spaceId: Int, satisfied: Boolean) {
         if (state != State.RUNNING) return
 
         /* Not filtered - first must filter to ensure no excessive backend requests. */
-        if (playerBoardCache[bingoPlayer]?.canSendMarking(spaceId, marking) != true) return
+        val cache = playerBoardCache[bingoPlayer] ?: return
+        val goalType = spaces[spaceId]?.goalType ?: run {
+            BingoPlugin.logger.severe("Want to mark space $spaceId, but can't determine goal type")
+            return
+        }
+        val newMarking = cache.canSendMarking(spaceId, goalType, satisfied) ?: return
 
-        websocketClient.sendMarkSpace(bingoPlayer.name, spaceId, marking.value)
+        websocketClient.sendMarkSpace(bingoPlayer.name, spaceId, newMarking.value)
     }
 
     private fun receiveMessage(msg: WebsocketRxMessage) {
@@ -108,8 +112,8 @@ class WebBackedGame(
         }
 
         for (webSpace in board.spaces) {
-            val newSpace = Space(webSpace.spaceId, webSpace.goalId, webSpace.goalType,
-                webSpace.text, webSpace.variables)
+            val newSpace = Space(webSpace.spaceId, webSpace.goalId,
+                Space.GoalType.ofString(webSpace.goalType), webSpace.text, webSpace.variables)
             spaces[newSpace.spaceId] = newSpace
             newSpace.startListening(playerManager, this::receiveAutomark)
         }

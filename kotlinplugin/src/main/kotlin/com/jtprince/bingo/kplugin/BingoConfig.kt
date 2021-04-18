@@ -7,7 +7,7 @@ object BingoConfig {
     val debug: Boolean
         get() = BingoPlugin.config.getBoolean("debug", false)
 
-    val webUrl: String by lazy {
+    private val webUrl: String by lazy {
         BingoPlugin.config.getString("web_url") ?: throw NoSuchFieldException("No web_url is configured!")
     }
 
@@ -21,6 +21,12 @@ object BingoConfig {
         val builder = URLBuilder(webUrl)
         builder.path("game", gameCode)
         builder.parameters["name"] = forPlayer.name
+        return builder.build()
+    }
+
+    fun webPingUrl(): Url {
+        val builder = URLBuilder(webUrl)
+        builder.path("ping")
         return builder.build()
     }
 

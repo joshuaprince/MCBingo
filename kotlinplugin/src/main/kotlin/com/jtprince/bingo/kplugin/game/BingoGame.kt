@@ -25,10 +25,12 @@ abstract class BingoGame(
     val playerManager = PlayerManager(players)
     val spaces = HashMap<Int, Space>()
 
-    open fun destroy() {
+    fun destroy() {
         playerManager.destroy()
+        destroyGame()
     }
 
+    protected abstract fun destroyGame()
     abstract fun signalStart()
     abstract fun signalEnd()
 
@@ -37,5 +39,5 @@ abstract class BingoGame(
      * that this might be called several times with the same inputs.
      */
     protected abstract fun receiveAutomark(bingoPlayer: BingoPlayer, spaceId: Int,
-                                           marking: Space.Marking)
+                                           satisfied: Boolean)
 }

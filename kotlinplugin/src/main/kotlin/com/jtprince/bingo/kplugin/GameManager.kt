@@ -6,6 +6,7 @@ import com.jtprince.bingo.kplugin.game.WebBackedGameProto
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import com.jtprince.bingo.kplugin.player.BingoPlayerSingle
 import com.jtprince.bingo.kplugin.player.BingoPlayerTeam
+import com.jtprince.bingo.kplugin.webclient.WebHttpClient
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
@@ -32,7 +33,11 @@ object GameManager {
         val newGame = WebBackedGameProto(creator, settings)
         currentGame = newGame
 
-        newGame.generateBoard { gameCode ->
+        WebHttpClient.generateBoard(settings) { gameCode ->
+            if (gameCode == null) {
+                Messages.basicTell(creator, "Board generation failed.")
+                return@generateBoard
+            }
             currentGame = WebBackedGame(creator, gameCode, createBingoPlayers())
         }
     }

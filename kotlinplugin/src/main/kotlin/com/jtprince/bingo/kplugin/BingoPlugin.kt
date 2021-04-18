@@ -1,9 +1,8 @@
 package com.jtprince.bingo.kplugin
 
 import com.jtprince.bingo.kplugin.automark.AutoMarkBukkitListener
-import com.jtprince.bingo.kplugin.automark.EventTrigger
-import com.jtprince.bingo.kplugin.automark.ItemTrigger
 import com.jtprince.bingo.kplugin.automark.loadEventTriggers
+import com.jtprince.bingo.kplugin.webclient.WebHttpClient
 import dev.jorel.commandapi.CommandAPI
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -21,18 +20,12 @@ class BingoPluginClass : JavaPlugin() {
         Commands.registerCommands()
         saveDefaultConfig()
 
-        BingoConfig.webUrl  // Will throw if misconfigured
+        WebHttpClient.pingBackend()
 
         server.pluginManager.registerEvents(AutoMarkBukkitListener, this)
         server.pluginManager.registerEvents(WorldManager.WorldManagerListener, this)
 
         loadEventTriggers()
-//        ItemTrigger.createItemTriggers("jm_mushroom_stew", 3, mapOf("var" to 4), {
-//            Messages.basicAnnounce("space $it")
-//        })
-//        EventTrigger.createEventTriggers("jm_never_boat", 2222, mapOf()) {
-//            Messages.basicAnnounce("space $it")
-//        }
     }
 
     override fun onLoad() {

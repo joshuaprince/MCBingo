@@ -7,7 +7,7 @@ import com.jtprince.bingo.kplugin.game.PlayerManager
 class Space(
     val spaceId: Int,
     val goalId: String,
-    val goalType: String,
+    val goalType: GoalType,
     val text: String,
     val variables: SetVariables,
 ) {
@@ -21,6 +21,17 @@ class Space(
         companion object {
             private val map = values().associateBy(Marking::value)
             fun valueOf(value: Int) = map[value] ?:
+                throw IllegalArgumentException("Unknown Marking value $value")
+        }
+    }
+
+    enum class GoalType(val value: String) {
+        DEFAULT("default"),
+        NEGATIVE("negative");
+
+        companion object {
+            private val map = values().associateBy(GoalType::value)
+            fun ofString(value: String) = map[value] ?:
                 throw IllegalArgumentException("Unknown Marking value $value")
         }
     }
