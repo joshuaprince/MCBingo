@@ -1,6 +1,8 @@
 package com.jtprince.bingo.kplugin
 
+import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.BingoGame
+import com.jtprince.bingo.kplugin.game.DebugGame
 import com.jtprince.bingo.kplugin.game.WebBackedGame
 import com.jtprince.bingo.kplugin.game.WebBackedGameProto
 import com.jtprince.bingo.kplugin.player.BingoPlayer
@@ -40,6 +42,12 @@ object GameManager {
             }
             currentGame = WebBackedGame(creator, gameCode, createBingoPlayers())
         }
+    }
+
+    fun debugGame(creator: Player, goalId: String, variables: SetVariables) {
+        destroyCurrentGame()
+        val newGame = DebugGame(creator, createBingoPlayers(), goalId, variables)
+        currentGame = newGame
     }
 
     private fun createBingoPlayers(): Collection<BingoPlayer> {

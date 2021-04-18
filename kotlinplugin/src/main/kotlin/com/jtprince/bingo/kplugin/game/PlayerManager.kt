@@ -23,8 +23,8 @@ class PlayerManager(localPlayers: Collection<BingoPlayer>) {
     }
     private val remotePlayers = HashSet<BingoPlayer>()
 
-    val playerWorldSetMap = HashMap<BingoPlayer, WorldManager.WorldSet>()
-    private val worldPlayerMap = HashMap<World, BingoPlayer>()
+    internal val playerWorldSetMap = HashMap<BingoPlayer, WorldManager.WorldSet>()
+    internal val worldPlayerMap = HashMap<World, BingoPlayer>()
 
     /**
      * A list of BingoPlayers that are participating in this game. This includes all

@@ -12,10 +12,13 @@ import java.io.InputStream
 import java.util.logging.Level
 
 
+/**
+ * Wrapper for a .yml file that contains Item Trigger definitions. For more information of the
+ * specifications of these files, see README.md in this file's directory.
+ */
 class ItemTriggerYaml private constructor(
-    @JsonProperty("item_triggers") root: Map<String, MatchGroup>
+    @JsonProperty("item_triggers") private val itemTriggers: Map<String, MatchGroup>
 ) {
-    private val itemTriggers: Map<String, MatchGroup> = root
     companion object {
         val defaultYaml: ItemTriggerYaml by lazy {
             fromFile(ItemTriggerYaml::class.java.getResourceAsStream("/item_triggers.yml"))
@@ -69,11 +72,11 @@ class ItemTriggerYaml private constructor(
         }
 
         fun unique(setVariables: SetVariables): Int {
-            return unique.getValue(setVariables)
+            return unique.getSetVariable(setVariables)
         }
 
         fun total(setVariables: SetVariables): Int {
-            return total.getValue(setVariables)
+            return total.getSetVariable(setVariables)
         }
     }
 
@@ -91,10 +94,8 @@ class ItemTriggerYaml private constructor(
             }
         }
 
-        fun getValue(setVariables: SetVariables): Int {
-            return constant ?: setVariables.getOrElse(name!!) {
-                throw RuntimeException("Unknown variable $name")
-            }
+        fun getSetVariable(setVariables: SetVariables): Int {
+            return constant ?: setVariables[name] ?: throw MissingVariableException(name)
         }
     }
 }

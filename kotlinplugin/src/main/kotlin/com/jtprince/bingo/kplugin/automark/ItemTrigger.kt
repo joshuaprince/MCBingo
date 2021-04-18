@@ -22,6 +22,8 @@ class ItemTrigger private constructor(
             val matchGroup = yml[goalId] ?: return emptySet()
             return setOf(ItemTrigger(goalId, spaceId, variables, playerManager, callback, matchGroup))
         }
+
+        val allAutomatedGoals = ItemTriggerYaml.defaultYaml.allAutomatedGoals
     }
 
     override val revertible = true

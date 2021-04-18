@@ -27,7 +27,10 @@ abstract class BingoGame(
 
     fun destroy() {
         playerManager.destroy()
-        spaces.values.forEach(Space::destroy)
+        for ((id, space) in spaces) {
+            space.destroy()
+            spaces -= id
+        }
         destroyGame()
     }
 

@@ -1,5 +1,7 @@
 package com.jtprince.bingo.kplugin
 
+import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
+import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.BingoGame
 import com.jtprince.bingo.kplugin.game.WebBackedGame
 import com.jtprince.bingo.kplugin.game.WebBackedGameProto
@@ -92,7 +94,15 @@ object Commands {
                 commandGo(sender, args[0] as BingoPlayer)
             })
 
+        val goalIdsArg = StringArgument("goalId")
+            .overrideSuggestions(AutoMarkTrigger.allAutomatedGoals)
         val debugCmd = CommandAPICommand("debug")
+            .withArguments(goalIdsArg)
+            .executesPlayer(PlayerCommandExecutor { sender: Player, args: Array<Any> ->
+                commandDebug(sender, args.map{a -> a as String}.toTypedArray())
+            })
+        val debugCmdVars = CommandAPICommand("debug")
+            .withArguments(goalIdsArg, GreedyStringArgument("variables"))
             .executesPlayer(PlayerCommandExecutor { sender: Player, args: Array<Any> ->
                 commandDebug(sender, args.map{a -> a as String}.toTypedArray())
             })
@@ -108,6 +118,7 @@ object Commands {
         root.withSubcommand(goSpawnCmd)
         if (BingoConfig.debug) {
             root.withSubcommand(debugCmd)
+            root.withSubcommand(debugCmdVars)
         }
         root.register()
     }
@@ -161,6 +172,12 @@ object Commands {
     }
 
     private fun commandDebug(sender: Player, args: Array<String>) {
-
+        val vars = HashMap<String, Int>()
+        // TODO: Document this pattern
+        val varArgs = args[1].split(" ")
+        for (i in 0 until varArgs.size-1 step 2) {
+            vars[varArgs[i]] = varArgs[i+1].toInt()
+        }
+        GameManager.debugGame(sender, args[0], vars.toMap())
     }
 }

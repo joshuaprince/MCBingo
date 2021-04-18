@@ -1,11 +1,13 @@
 package com.jtprince.bingo.kplugin.player
 
+import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.audience.ForwardingAudience
 import net.kyori.adventure.text.Component
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
-abstract class BingoPlayer {
+abstract class BingoPlayer : ForwardingAudience {
     /**
      * The name that should be used on the WebSocket, and will be displayed on the webpage.
      */
@@ -38,4 +40,9 @@ abstract class BingoPlayer {
      */
     val slugName: String
         get() = name.replace(" ", "")
+
+    /**
+     * Allows BingoPlayer to be an Audience.
+     */
+    override fun audiences(): Iterable<Audience> = bukkitPlayers
 }

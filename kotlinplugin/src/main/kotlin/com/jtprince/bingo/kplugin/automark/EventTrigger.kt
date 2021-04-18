@@ -30,15 +30,18 @@ class EventTrigger internal constructor(
                                 playerManager: PlayerManager, callback: AutoMarkCallback,
         ): Collection<EventTrigger> {
             val ret = HashSet<EventTrigger>()
-            EventTriggerDefinition.registry[goalId]?.forEach {
+            eventTriggerRegistry[goalId]?.forEach {
                 ret += EventTrigger(goalId, spaceId, variables, playerManager, callback, it)
             }
             return ret
         }
 
+        val allAutomatedGoals
+            get() = eventTriggerRegistry.keys
+
         /**
-         * Determine which BingoPlayer an Event is associated with, for determining who to potentially
-         * automark for.
+         * Determine which BingoPlayer an Event is associated with, for determining who to
+         * potentially automark for.
          */
         internal fun forWhom(playerManager: PlayerManager, event: Event): BingoPlayer? {
             return when (event) {
@@ -69,8 +72,10 @@ class EventTrigger internal constructor(
         AutoMarkBukkitListener.unregister(listenerRegistryId)
     }
 
+    /**
+     * Listener callback that is called EVERY time this EventListener's tracked event is fired.
+     */
     private fun eventRaised(event: Event) {
-        // Listener callback - called every time an event of eventType is raised
         val player = forWhom(playerManager, event) ?: return
 
         val triggerDefParams = TriggerParameters(event,  this)

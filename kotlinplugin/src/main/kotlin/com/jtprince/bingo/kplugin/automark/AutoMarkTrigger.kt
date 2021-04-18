@@ -14,13 +14,16 @@ abstract class AutoMarkTrigger(
     val callback: AutoMarkCallback,
     val playerManager: PlayerManager,
 ) {
-    companion object Creator {
+    companion object {
         fun createForGoal(goalId: String, spaceId: Int, variables: SetVariables,
                           playerManager: PlayerManager, callback: AutoMarkCallback
         ): Collection<AutoMarkTrigger> {
             return (EventTrigger.createEventTriggers(goalId, spaceId, variables, playerManager, callback)
                 + ItemTrigger.createItemTriggers(goalId, spaceId, variables, playerManager, callback))
         }
+
+        val allAutomatedGoals
+            get() = EventTrigger.allAutomatedGoals + ItemTrigger.allAutomatedGoals
     }
 
     /**

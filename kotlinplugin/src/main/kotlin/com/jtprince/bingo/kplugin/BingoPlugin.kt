@@ -1,7 +1,6 @@
 package com.jtprince.bingo.kplugin
 
 import com.jtprince.bingo.kplugin.automark.AutoMarkBukkitListener
-import com.jtprince.bingo.kplugin.automark.loadEventTriggers
 import com.jtprince.bingo.kplugin.webclient.WebHttpClient
 import dev.jorel.commandapi.CommandAPI
 import org.bukkit.plugin.java.JavaPlugin
@@ -24,8 +23,6 @@ class BingoPluginClass : JavaPlugin() {
 
         server.pluginManager.registerEvents(AutoMarkBukkitListener, this)
         server.pluginManager.registerEvents(WorldManager.WorldManagerListener, this)
-
-        loadEventTriggers()
     }
 
     override fun onLoad() {
