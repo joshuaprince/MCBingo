@@ -1,16 +1,10 @@
 package com.jtprince.bingo.kplugin.automark
 
-import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
-import com.jtprince.bingo.kplugin.player.BingoPlayer
 import org.bukkit.event.Event
-import org.bukkit.event.entity.EntityPickupItemEvent
-import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.ItemStack
 import kotlin.math.min
-import kotlin.reflect.KClass
 
 class ItemTrigger private constructor(
     goalId: String,
@@ -32,35 +26,17 @@ class ItemTrigger private constructor(
 
     override val revertible = true
 
-    private val eventTypes: Collection<KClass<out Event>> = setOf(
-        InventoryCloseEvent::class, EntityPickupItemEvent::class, InventoryClickEvent::class
-    )
-
-    private val listenerRegistryIds = eventTypes.map { AutoMarkBukkitListener.register(it, ::eventRaised) }
+    private val listenerRegistryId = AutoMarkBukkitListener.registerInventoryChange(::eventRaised)
 
     override fun destroy() {
-        listenerRegistryIds.forEach(AutoMarkBukkitListener::unregister)
+        AutoMarkBukkitListener.unregister(listenerRegistryId)
     }
 
     /**
-     * Listener callback that is called EVERY time an event of class in [eventTypes] is called
-     * anywhere on the server.
+     * Listener callback that is called EVERY time anyone on the server's inventory changes.
      */
     private fun eventRaised(event: Event) {
         val player = EventTrigger.forWhom(playerManager, event) ?: return
-
-        // Called back one tick later so the inventory change has applied.
-        // TODO: Across all ItemTriggers, this is a lot of scheduled tasks going on for every Event
-        BingoPlugin.server.scheduler.scheduleSyncDelayedTask(BingoPlugin, {
-            scanInventory(player)
-        }, 1)
-    }
-
-    /**
-     * Scan a player's inventory and call back this ItemTrigger's callback with whether the trigger
-     * is satisfied.
-     */
-    private fun scanInventory(player: BingoPlayer) {
         val satisfied = satisfiedBy(player.inventory)
         // Always call callback, since ItemTriggers are always revertible.
         callback(player, spaceId, satisfied)
