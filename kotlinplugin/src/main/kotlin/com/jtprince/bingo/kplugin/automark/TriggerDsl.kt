@@ -61,11 +61,12 @@ internal class TriggerDslRegistryBuilder {
 
     internal fun specialItemTrigger(
         vararg goalIds: String,
+        revertible: Boolean = true,
         check: SpecialItemTriggerDefinition.Parameters.() -> Boolean
     ) {
         for (goalId in goalIds) {
             val lst = triggers.getOrPut(goalId) { mutableListOf() }
-            lst += SpecialItemTriggerDefinition(check)
+            lst += SpecialItemTriggerDefinition(revertible, check)
         }
     }
 
@@ -90,7 +91,7 @@ internal class EventTriggerDefinition<EventType: Event>(
 ) : TriggerDslDefinition() {
     class Parameters<EventType: Event>(
         val event: EventType,
-        trigger: EventTrigger,
+        val trigger: EventTrigger,
     ) {
         val vars = trigger.variables
     }
@@ -109,9 +110,11 @@ internal class OccasionalTriggerDefinition(
 }
 
 internal class SpecialItemTriggerDefinition(
+    val revertible: Boolean,
     val function: (Parameters) -> Boolean
 ) : TriggerDslDefinition() {
     class Parameters(
+        val player: BingoPlayer,
         val inventory: Collection<ItemStack>,
         trigger: SpecialItemTrigger,
     ) {

@@ -2,6 +2,7 @@ package com.jtprince.bingo.kplugin.automark
 
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
+import com.jtprince.bingo.kplugin.player.BingoPlayer
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 import kotlin.math.min
@@ -28,7 +29,7 @@ open class ItemTrigger internal constructor(
      */
     private fun eventRaised(event: Event) {
         val player = EventTrigger.forWhom(playerManager, event) ?: return
-        val satisfied = satisfiedBy(player.inventory)
+        val satisfied = satisfiedBy(player)
         // Always call callback, since ItemTriggers are always revertible.
         callback(player, spaceId, satisfied)
     }
@@ -36,7 +37,8 @@ open class ItemTrigger internal constructor(
     /**
      * Returns whether a set of items meets the criteria for this Item Trigger.
      */
-    protected open fun satisfiedBy(inventory: Collection<ItemStack>): Boolean {
+    protected open fun satisfiedBy(player: BingoPlayer): Boolean {
+        val inventory = player.inventory
         val rootMatchGroup = rootMatchGroup ?: return false
         val rootUT = effectiveUT(rootMatchGroup, inventory)
         return rootUT.u >= rootMatchGroup.unique(variables)

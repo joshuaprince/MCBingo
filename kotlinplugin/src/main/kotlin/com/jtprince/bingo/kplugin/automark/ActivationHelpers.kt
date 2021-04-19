@@ -1,9 +1,13 @@
 package com.jtprince.bingo.kplugin.automark
 
+import net.kyori.adventure.text.Component
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.StructureType
+import org.bukkit.TreeType
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
+import org.bukkit.event.player.PlayerBedLeaveEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
@@ -12,6 +16,75 @@ import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
 
 object ActivationHelpers {
+    val SKELETON_DROPPED_BOW = Component.text("Dropped by a Skeleton")
+
+    val MEATS = setOf( // Invalidate Vegetarian
+        Material.CHICKEN, Material.COOKED_CHICKEN, Material.COD, Material.COOKED_COD,
+        Material.BEEF, Material.COOKED_BEEF, Material.MUTTON, Material.COOKED_MUTTON,
+        Material.RABBIT, Material.COOKED_RABBIT, Material.SALMON, Material.COOKED_SALMON,
+        Material.PORKCHOP, Material.COOKED_PORKCHOP, Material.TROPICAL_FISH, Material.PUFFERFISH,
+        Material.RABBIT_STEW, Material.ROTTEN_FLESH, Material.SPIDER_EYE
+    )
+
+    val NON_MEATS = setOf( // Invalidate Carnivore
+        Material.APPLE, Material.BAKED_POTATO, Material.BEETROOT, Material.BEETROOT_SOUP,
+        Material.BREAD, Material.CARROT, Material.CHORUS_FRUIT, Material.COOKIE,
+        Material.DRIED_KELP, Material.ENCHANTED_GOLDEN_APPLE, Material.GOLDEN_APPLE,
+        Material.GOLDEN_CARROT, Material.MELON_SLICE, Material.MUSHROOM_STEW,
+        Material.POISONOUS_POTATO, Material.POTATO, Material.PUMPKIN_PIE, Material.SUSPICIOUS_STEW,
+        Material.SWEET_BERRIES
+    )
+
+    /* Consumables that do not invalidate either of the above: Potions, Honey, Milk, Cake (block) */
+
+    val TORCHES = setOf(
+        Material.TORCH, Material.WALL_TORCH, Material.SOUL_TORCH, Material.SOUL_WALL_TORCH,
+        Material.REDSTONE_TORCH, Material.REDSTONE_WALL_TORCH
+    )
+
+    val TREES = setOf(
+        TreeType.ACACIA, TreeType.BIG_TREE, TreeType.BIRCH, TreeType.COCOA_TREE,
+        TreeType.DARK_OAK, TreeType.JUNGLE, TreeType.JUNGLE_BUSH, TreeType.MEGA_REDWOOD,
+        TreeType.REDWOOD, TreeType.SMALL_JUNGLE, TreeType.SWAMP, TreeType.TALL_BIRCH,
+        TreeType.TALL_REDWOOD, TreeType.TREE
+    )
+
+    val MUSHROOMS = setOf(
+        TreeType.BROWN_MUSHROOM, TreeType.RED_MUSHROOM
+    )
+
+    val FISH_ENTITIES = setOf(
+        EntityType.COD, EntityType.SALMON, EntityType.PUFFERFISH, EntityType.TROPICAL_FISH
+    )
+
+    val FISHING_TREASURES = setOf(
+        Material.BOW, Material.ENCHANTED_BOOK, Material.NAME_TAG, Material.NAUTILUS_SHELL,
+        Material.SADDLE /* Fishing Rod item is treasure only if enchanted */
+    )
+
+    val FISHING_JUNK = setOf(
+        Material.LILY_PAD, Material.BOWL, Material.LEATHER, Material.LEATHER_BOOTS,
+        Material.ROTTEN_FLESH, Material.STICK, Material.STRING, Material.POTION,  /* Water Bottle */
+        Material.BONE, Material.INK_SAC, Material.TRIPWIRE_HOOK /* Fishing Rod item is junk only if unenchanted */
+    )
+
+    val LEATHER_ARMOR = setOf(
+        Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS,
+        Material.LEATHER_BOOTS
+    )
+
+    val ICE_BLOCKS = setOf(
+        Material.ICE, Material.FROSTED_ICE, Material.BLUE_ICE, Material.PACKED_ICE
+    )
+
+    val CARPETS = setOf(
+        Material.BLACK_CARPET, Material.BLUE_CARPET, Material.CYAN_CARPET, Material.BROWN_CARPET,
+        Material.GRAY_CARPET, Material.GREEN_CARPET, Material.LIGHT_BLUE_CARPET,
+        Material.LIGHT_GRAY_CARPET, Material.LIME_CARPET, Material.MAGENTA_CARPET,
+        Material.ORANGE_CARPET, Material.PINK_CARPET, Material.PURPLE_CARPET, Material.RED_CARPET,
+        Material.WHITE_CARPET, Material.YELLOW_CARPET
+    )
+
     fun Location.inVillage(): Boolean {
         val nearestVillage = world.locateNearestStructure(
             this, StructureType.VILLAGE, 8, false
@@ -56,6 +129,13 @@ object ActivationHelpers {
             }
         }
         return q >= quantity
+    }
+
+    /**
+     * Determine if a player slept through the night.
+     */
+    fun PlayerBedLeaveEvent.throughNight() : Boolean {
+        return player.world.time < 1000
     }
 
     private class MapCompletionRenderer : MapRenderer() {

@@ -2,7 +2,7 @@ package com.jtprince.bingo.kplugin.automark
 
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
-import org.bukkit.inventory.ItemStack
+import com.jtprince.bingo.kplugin.player.BingoPlayer
 
 class SpecialItemTrigger internal constructor(
     goalId: String,
@@ -13,7 +13,10 @@ class SpecialItemTrigger internal constructor(
     private val triggerDefinition: SpecialItemTriggerDefinition,
 ) : ItemTrigger(goalId, spaceId, variables, playerManager, callback, null) {
 
-    override fun satisfiedBy(inventory: Collection<ItemStack>): Boolean {
-        return triggerDefinition.function(SpecialItemTriggerDefinition.Parameters(inventory, this))
+    override val revertible = triggerDefinition.revertible
+
+    override fun satisfiedBy(player: BingoPlayer): Boolean {
+        return triggerDefinition.function(
+            SpecialItemTriggerDefinition.Parameters(player, player.inventory, this))
     }
 }
