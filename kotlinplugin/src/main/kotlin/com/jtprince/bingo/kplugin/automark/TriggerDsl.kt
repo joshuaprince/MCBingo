@@ -4,7 +4,7 @@
  * TriggerDefinitions.kt.
  */
 
-package com.jtprince.bingo.kplugin.automark.dsl
+package com.jtprince.bingo.kplugin.automark
 
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import org.bukkit.event.Event

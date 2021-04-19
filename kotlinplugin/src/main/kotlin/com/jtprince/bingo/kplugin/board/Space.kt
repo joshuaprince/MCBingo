@@ -2,6 +2,7 @@ package com.jtprince.bingo.kplugin.board
 
 import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
 import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
+import com.jtprince.bingo.kplugin.automark.AutoMarkTriggerFactory
 import com.jtprince.bingo.kplugin.game.PlayerManager
 
 class Space(
@@ -46,7 +47,7 @@ class Space(
      * space.
      */
     fun startListening(playerManager: PlayerManager, callback: AutoMarkCallback) {
-        triggers = AutoMarkTrigger.createForGoal(
+        triggers = AutoMarkTriggerFactory().create(
             goalId, spaceId, variables, playerManager, callback)
     }
 

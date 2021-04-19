@@ -1,16 +1,12 @@
-package com.jtprince.bingo.kplugin.automark.item
+package com.jtprince.bingo.kplugin.automark
 
-import com.jtprince.bingo.kplugin.automark.AutoMarkBukkitListener
-import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
-import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
-import com.jtprince.bingo.kplugin.automark.dsl.EventTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 import kotlin.math.min
 
-open class ItemTrigger protected constructor(
+open class ItemTrigger internal constructor(
     goalId: String,
     spaceId: Int,
     variables: SetVariables,
@@ -18,18 +14,6 @@ open class ItemTrigger protected constructor(
     callback: AutoMarkCallback,
     private val rootMatchGroup: ItemTriggerYaml.MatchGroup?,
 ) : AutoMarkTrigger(goalId, spaceId, variables, playerManager, callback) {
-
-    companion object {
-        fun createItemTriggers(goalId: String, spaceId: Int, variables: SetVariables,
-                               playerManager: PlayerManager, callback: AutoMarkCallback,
-                               yml: ItemTriggerYaml = ItemTriggerYaml.defaultYaml
-        ): Collection<ItemTrigger> {
-            val matchGroup = yml[goalId] ?: return emptySet()
-            return setOf(ItemTrigger(goalId, spaceId, variables, playerManager, callback, matchGroup))
-        }
-
-        val allAutomatedGoals = ItemTriggerYaml.defaultYaml.allAutomatedGoals
-    }
 
     override val revertible = true
 

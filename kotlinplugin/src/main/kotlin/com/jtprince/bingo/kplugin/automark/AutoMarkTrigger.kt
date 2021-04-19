@@ -1,10 +1,5 @@
 package com.jtprince.bingo.kplugin.automark
 
-import com.jtprince.bingo.kplugin.automark.dsl.EventTrigger
-import com.jtprince.bingo.kplugin.automark.dsl.OccasionalTrigger
-import com.jtprince.bingo.kplugin.automark.dsl.SpecialItemTrigger
-import com.jtprince.bingo.kplugin.automark.dsl.dslRegistry
-import com.jtprince.bingo.kplugin.automark.item.ItemTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import com.jtprince.bingo.kplugin.player.BingoPlayer
@@ -19,17 +14,8 @@ abstract class AutoMarkTrigger(
     val callback: AutoMarkCallback,
 ) {
     companion object {
-        fun createForGoal(goalId: String, spaceId: Int, variables: SetVariables,
-                          playerManager: PlayerManager, callback: AutoMarkCallback
-        ): Collection<AutoMarkTrigger> {
-            return (EventTrigger.createEventTriggers(goalId, spaceId, variables, playerManager, callback)
-                + ItemTrigger.createItemTriggers(goalId, spaceId, variables, playerManager, callback)
-                + SpecialItemTrigger.createSpecialItemTriggers(goalId, spaceId, variables, playerManager, callback)
-                + OccasionalTrigger.createOccasionalTriggers(goalId, spaceId, variables, playerManager, callback))
-        }
-
         val allAutomatedGoals
-            get() = ItemTrigger.allAutomatedGoals + dslRegistry.allAutomatedGoals
+            get() = ItemTriggerYaml.defaultYaml.allAutomatedGoals + dslRegistry.allAutomatedGoals
     }
 
     /**

@@ -1,9 +1,6 @@
-package com.jtprince.bingo.kplugin.automark.dsl
+package com.jtprince.bingo.kplugin.automark
 
 import com.jtprince.bingo.kplugin.BingoPlugin
-import com.jtprince.bingo.kplugin.automark.AutoMarkBukkitListener
-import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
-import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import com.jtprince.bingo.kplugin.player.BingoPlayer
@@ -29,15 +26,6 @@ class EventTrigger internal constructor(
 ) : AutoMarkTrigger(goalId, spaceId, variables, playerManager, callback) {
 
     companion object {
-        fun createEventTriggers(goalId: String, spaceId: Int, variables: SetVariables,
-                                playerManager: PlayerManager, callback: AutoMarkCallback,
-        ): Collection<EventTrigger> {
-            val triggerDefs = dslRegistry[goalId] ?: return emptySet()
-            return triggerDefs.filterIsInstance<EventTriggerDefinition<*>>().map {
-                EventTrigger(goalId, spaceId, variables, playerManager, callback, it)
-            }
-        }
-
         /**
          * Determine which BingoPlayer an Event is associated with, for determining who to
          * potentially automark for.
@@ -77,7 +65,7 @@ class EventTrigger internal constructor(
     private fun eventRaised(event: Event) {
         val player = forWhom(playerManager, event) ?: return
 
-        val triggerDefParams = EventTriggerDefinition.Parameters(event,  this)
+        val triggerDefParams = EventTriggerDefinition.Parameters(event, this)
         @Suppress("UNCHECKED_CAST")  // TODO figure out if this can be worked around
         val satisfied = triggerDefinition.function.invoke(triggerDefParams as EventTriggerDefinition.Parameters<Nothing>)
 

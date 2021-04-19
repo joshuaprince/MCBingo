@@ -1,11 +1,13 @@
-package com.jtprince.bingo.kplugin.automark.dsl
+package com.jtprince.bingo.kplugin.automark
 
 import com.jtprince.bingo.kplugin.BingoPlugin
-import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
-import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 
+/**
+ * Defines a Trigger that is called at a regular interval to check if a player has completed a
+ * goal.
+ */
 class OccasionalTrigger internal constructor(
     goalId: String,
     spaceId: Int,
@@ -15,18 +17,8 @@ class OccasionalTrigger internal constructor(
     private val triggerDefinition: OccasionalTriggerDefinition,
 ) : AutoMarkTrigger(goalId, spaceId, variables, playerManager, callback) {
 
-    companion object {
-        fun createOccasionalTriggers(goalId: String, spaceId: Int, variables: SetVariables,
-                                     playerManager: PlayerManager, callback: AutoMarkCallback
-        ): Collection<OccasionalTrigger> {
-            val triggerDefs = dslRegistry[goalId] ?: return emptySet()
-            return triggerDefs.filterIsInstance<OccasionalTriggerDefinition>().map {
-                OccasionalTrigger(goalId, spaceId, variables, playerManager, callback, it)
-            }
-        }
-    }
-
     override val revertible = false
+
     private val taskId = BingoPlugin.server.scheduler.scheduleSyncRepeatingTask(
             BingoPlugin, this::invoke, triggerDefinition.ticks.toLong(), triggerDefinition.ticks.toLong())
 

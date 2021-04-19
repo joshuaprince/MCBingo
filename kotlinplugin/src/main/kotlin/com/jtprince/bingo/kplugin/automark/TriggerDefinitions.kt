@@ -1,7 +1,6 @@
-package com.jtprince.bingo.kplugin.automark.dsl
+package com.jtprince.bingo.kplugin.automark
 
 import com.jtprince.bingo.kplugin.automark.ActivationHelpers.isCompletedMap
-import com.jtprince.bingo.kplugin.automark.MissingVariableException
 import org.bukkit.Material
 import org.bukkit.entity.Boat
 import org.bukkit.entity.EntityType
