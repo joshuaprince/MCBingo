@@ -9,7 +9,6 @@ import com.jtprince.bingo.kplugin.webclient.WebBackedWebsocketClient
 import com.jtprince.bingo.kplugin.webclient.WebsocketRxMessage
 import com.jtprince.bingo.kplugin.webclient.model.WebModelBoard
 import com.jtprince.bingo.kplugin.webclient.model.WebModelPlayerBoard
-import org.bukkit.GameMode
 import org.bukkit.command.CommandSender
 
 class WebBackedGame(
@@ -28,10 +27,12 @@ class WebBackedGame(
     private var websocketReady = false
     private var worldsReady = false
 
-    private val startEffects = GameStartEffects(playerManager) {
+    private val startEffects = GameEffects(playerManager) {
         state = State.RUNNING
         websocketClient.sendRevealBoard()
     }
+
+    private var winner: BingoPlayer? = null
 
     init {
         websocketClient.connect {
@@ -134,6 +135,11 @@ class WebBackedGame(
             // TODO Do we even need remote players any more?
             val player = playerManager.bingoPlayer(pb.playerName, false) ?: continue
             playerBoardCache[player]?.updateFromWeb(pb)
+            if (pb.win && winner == null) {
+                winner = player
+                // TODO The backend should send the "game end" state transition.
+                receiveGameStateTransition("end")
+            }
         }
     }
 
@@ -158,7 +164,7 @@ class WebBackedGame(
 
                 state = State.DONE
                 Messages.basicAnnounce("The game has ended!")
-                startEffects.doEndEffects()
+                startEffects.doEndEffects(winner)
             }
             else -> {
                 BingoPlugin.logger.severe(

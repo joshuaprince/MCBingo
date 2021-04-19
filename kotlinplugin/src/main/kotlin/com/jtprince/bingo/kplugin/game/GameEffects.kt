@@ -4,6 +4,7 @@ import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.WorldManager
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import com.jtprince.bingo.kplugin.player.BingoPlayerRemote
+import io.github.skepter.utils.FireworkUtils
 import org.bukkit.GameMode
 import org.bukkit.Sound
 import org.bukkit.Statistic
@@ -13,11 +14,11 @@ import org.bukkit.potion.PotionEffectType
 
 /**
  * Container for applying all the fancy effects when a game starts and ends - countdown sequence,
- * potion effects, teleportation to worlds, inventory wipe, etc.
+ * potion effects, teleportation to worlds, inventory wipe, victory fireworks, etc.
  */
-class GameStartEffects(
+class GameEffects(
     private val playerManager: PlayerManager,
-    private val effectsOver: () -> Unit,
+    private val startSequenceDone: () -> Unit,
 ) {
     private val bukkitPlayers = playerManager.bukkitPlayers
     private var countdown = 0
@@ -33,13 +34,16 @@ class GameStartEffects(
             doCountdown()
 
             BingoPlugin.server.scheduler.scheduleSyncDelayedTask(
-                BingoPlugin, effectsOver, length.toLong())
+                BingoPlugin, startSequenceDone, length.toLong())
         }
     }
 
-    fun doEndEffects() {
+    fun doEndEffects(winner: BingoPlayer?) {
         BingoPlugin.server.scheduler.scheduleSyncDelayedTask(BingoPlugin) {
             playerManager.bukkitPlayers.forEach { it.gameMode = GameMode.SPECTATOR }
+            winner?.bukkitPlayers?.forEach {
+                FireworkUtils.spawnSeveralFireworks(BingoPlugin, it)
+            }
         }
     }
 
