@@ -1,4 +1,4 @@
-package com.jtprince.bingo.kplugin.automark
+package com.jtprince.bingo.kplugin.automark.item
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.jtprince.bingo.kplugin.BingoPlugin
+import com.jtprince.bingo.kplugin.automark.MissingVariableException
 import com.jtprince.bingo.kplugin.board.SetVariables
 import java.io.IOException
 import java.io.InputStream

@@ -1,7 +1,11 @@
 package com.jtprince.bingo.kplugin.automark
 
+import com.jtprince.bingo.kplugin.automark.dsl.EventTrigger
+import com.jtprince.bingo.kplugin.automark.dsl.OccasionalTrigger
+import com.jtprince.bingo.kplugin.automark.dsl.SpecialItemTrigger
+import com.jtprince.bingo.kplugin.automark.dsl.dslRegistry
+import com.jtprince.bingo.kplugin.automark.item.ItemTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
-import com.jtprince.bingo.kplugin.board.Space
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 

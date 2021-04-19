@@ -1,5 +1,9 @@
-package com.jtprince.bingo.kplugin.automark
+package com.jtprince.bingo.kplugin.automark.item
 
+import com.jtprince.bingo.kplugin.automark.AutoMarkBukkitListener
+import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
+import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
+import com.jtprince.bingo.kplugin.automark.dsl.EventTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import org.bukkit.event.Event

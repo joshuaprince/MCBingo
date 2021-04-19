@@ -1,10 +1,12 @@
-package com.jtprince.bingo.kplugin.automark
+package com.jtprince.bingo.kplugin.automark.dsl
 
 import com.jtprince.bingo.kplugin.BingoPlugin
+import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
+import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 
-class OccasionalTrigger(
+class OccasionalTrigger internal constructor(
     goalId: String,
     spaceId: Int,
     variables: SetVariables,
@@ -34,7 +36,7 @@ class OccasionalTrigger(
 
     private fun invoke() {
         playerManager.localPlayers.forEach {
-            if (triggerDefinition.function(OccasionalTriggerParameters(it, this))) {
+            if (triggerDefinition.function(OccasionalTriggerDefinition.Parameters(it, this))) {
                 callback(it, spaceId, true)
             }
         }

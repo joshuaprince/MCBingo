@@ -1,6 +1,9 @@
-package com.jtprince.bingo.kplugin.automark
+package com.jtprince.bingo.kplugin.automark.dsl
 
 import com.jtprince.bingo.kplugin.BingoPlugin
+import com.jtprince.bingo.kplugin.automark.AutoMarkBukkitListener
+import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
+import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import com.jtprince.bingo.kplugin.player.BingoPlayer
@@ -74,9 +77,9 @@ class EventTrigger internal constructor(
     private fun eventRaised(event: Event) {
         val player = forWhom(playerManager, event) ?: return
 
-        val triggerDefParams = EventTriggerParameters(event,  this)
+        val triggerDefParams = EventTriggerDefinition.Parameters(event,  this)
         @Suppress("UNCHECKED_CAST")  // TODO figure out if this can be worked around
-        val satisfied = triggerDefinition.function.invoke(triggerDefParams as EventTriggerParameters<Nothing>)
+        val satisfied = triggerDefinition.function.invoke(triggerDefParams as EventTriggerDefinition.Parameters<Nothing>)
 
         if (satisfied || revertible) {
             callback(player, spaceId, satisfied)

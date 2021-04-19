@@ -1,10 +1,12 @@
-package com.jtprince.bingo.kplugin.automark
+package com.jtprince.bingo.kplugin.automark.dsl
 
+import com.jtprince.bingo.kplugin.automark.AutoMarkCallback
+import com.jtprince.bingo.kplugin.automark.item.ItemTrigger
 import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.PlayerManager
 import org.bukkit.inventory.ItemStack
 
-class SpecialItemTrigger(
+class SpecialItemTrigger internal constructor(
     goalId: String,
     spaceId: Int,
     variables: SetVariables,
@@ -25,6 +27,6 @@ class SpecialItemTrigger(
     }
 
     override fun satisfiedBy(inventory: Collection<ItemStack>): Boolean {
-        return triggerDefinition.function(SpecialItemTriggerParameters(inventory, this))
+        return triggerDefinition.function(SpecialItemTriggerDefinition.Parameters(inventory, this))
     }
 }
