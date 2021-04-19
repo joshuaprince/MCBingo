@@ -25,8 +25,7 @@ abstract class AutoMarkTrigger(
         }
 
         val allAutomatedGoals
-            get() = EventTrigger.allAutomatedGoals + ItemTrigger.allAutomatedGoals +
-                    SpecialItemTrigger.allAutomatedGoals + OccasionalTrigger.allAutomatedGoals
+            get() = ItemTrigger.allAutomatedGoals + dslRegistry.allAutomatedGoals
     }
 
     /**

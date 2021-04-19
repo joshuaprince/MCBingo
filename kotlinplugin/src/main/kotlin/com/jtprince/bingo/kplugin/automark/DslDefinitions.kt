@@ -1,5 +1,7 @@
 package com.jtprince.bingo.kplugin.automark
 
+import com.jtprince.bingo.kplugin.automark.ActivationHelpers.isCompletedMap
+import org.bukkit.Material
 import org.bukkit.entity.Boat
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -8,29 +10,37 @@ import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerLevelChangeEvent
 import org.spigotmc.event.entity.EntityMountEvent
 
-val eventTriggerRegistry = EventTriggerRegistry {
+val dslRegistry = TriggerDslRegistry {
+    occasionalTrigger("jm_complete_map", ticks = 20) {
+        player.inventory.any { i -> i.isCompletedMap() }
+    }
+
+    specialItemTrigger("jm_enchanted_gold_sword") { inventory.any {
+        it.type == Material.GOLDEN_SWORD && it.enchantments.isNotEmpty()
+    }}
+
     // Never use a sword
-    trigger<BlockBreakEvent>("jm_never_sword") {
+    eventTrigger<BlockBreakEvent>("jm_never_sword") {
         event.player.inventory.itemInMainHand.type.key.asString().contains("_sword")
     }
 
     // Never use an axe
-    trigger<BlockBreakEvent>("jm_never_axe") {
+    eventTrigger<BlockBreakEvent>("jm_never_axe") {
         event.player.inventory.itemInMainHand.type.key.asString().contains("_axe")
     }
 
     // Kill an Iron Golem
-    trigger<EntityDeathEvent>("jm_kill_golem_iron") {
+    eventTrigger<EntityDeathEvent>("jm_kill_golem_iron") {
         event.entityType == EntityType.IRON_GOLEM && event.entity.killer != null
     }
 
     // Never use (enter) boats
-    trigger<EntityMountEvent>("jm_never_boat") {
+    eventTrigger<EntityMountEvent>("jm_never_boat") {
         event.entity is Player && event.mount is Boat
     }
 
     // Level <x>
-    trigger<PlayerLevelChangeEvent>("jm_level") {
+    eventTrigger<PlayerLevelChangeEvent>("jm_level") {
         val required = vars["var"] ?: throw MissingVariableException("var")
         event.newLevel >= required
     }

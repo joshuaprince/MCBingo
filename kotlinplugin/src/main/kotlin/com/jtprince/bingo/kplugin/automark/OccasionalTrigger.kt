@@ -17,11 +17,11 @@ class OccasionalTrigger(
         fun createOccasionalTriggers(goalId: String, spaceId: Int, variables: SetVariables,
                                      playerManager: PlayerManager, callback: AutoMarkCallback
         ): Collection<OccasionalTrigger> {
-            val triggerDefs = occasionalTriggerRegistry[goalId] ?: return emptySet()
-            return triggerDefs.map { OccasionalTrigger(goalId, spaceId, variables, playerManager, callback, it) }
+            val triggerDefs = dslRegistry[goalId] ?: return emptySet()
+            return triggerDefs.filterIsInstance<OccasionalTriggerDefinition>().map {
+                OccasionalTrigger(goalId, spaceId, variables, playerManager, callback, it)
+            }
         }
-
-        val allAutomatedGoals = occasionalTriggerRegistry.keys
     }
 
     override val revertible = false

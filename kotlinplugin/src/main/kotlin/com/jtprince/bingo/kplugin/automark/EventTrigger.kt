@@ -29,15 +29,11 @@ class EventTrigger internal constructor(
         fun createEventTriggers(goalId: String, spaceId: Int, variables: SetVariables,
                                 playerManager: PlayerManager, callback: AutoMarkCallback,
         ): Collection<EventTrigger> {
-            val ret = HashSet<EventTrigger>()
-            eventTriggerRegistry[goalId]?.forEach {
-                ret += EventTrigger(goalId, spaceId, variables, playerManager, callback, it)
+            val triggerDefs = dslRegistry[goalId] ?: return emptySet()
+            return triggerDefs.filterIsInstance<EventTriggerDefinition<*>>().map {
+                EventTrigger(goalId, spaceId, variables, playerManager, callback, it)
             }
-            return ret.toSet()
         }
-
-        val allAutomatedGoals
-            get() = eventTriggerRegistry.keys
 
         /**
          * Determine which BingoPlayer an Event is associated with, for determining who to
@@ -78,9 +74,9 @@ class EventTrigger internal constructor(
     private fun eventRaised(event: Event) {
         val player = forWhom(playerManager, event) ?: return
 
-        val triggerDefParams = TriggerParameters(event,  this)
+        val triggerDefParams = EventTriggerParameters(event,  this)
         @Suppress("UNCHECKED_CAST")  // TODO figure out if this can be worked around
-        val satisfied = triggerDefinition.function.invoke(triggerDefParams as TriggerParameters<Nothing>)
+        val satisfied = triggerDefinition.function.invoke(triggerDefParams as EventTriggerParameters<Nothing>)
 
         if (satisfied || revertible) {
             callback(player, spaceId, satisfied)

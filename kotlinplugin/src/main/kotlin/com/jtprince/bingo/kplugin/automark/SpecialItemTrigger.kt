@@ -17,11 +17,11 @@ class SpecialItemTrigger(
         fun createSpecialItemTriggers(goalId: String, spaceId: Int, variables: SetVariables,
                                playerManager: PlayerManager, callback: AutoMarkCallback
         ): Collection<ItemTrigger> {
-            val triggerDefs = specialItemTriggerRegistry[goalId] ?: return emptySet()
-            return triggerDefs.map { SpecialItemTrigger(goalId, spaceId, variables, playerManager, callback, it) }
+            val triggerDefs = dslRegistry[goalId] ?: return emptySet()
+            return triggerDefs.filterIsInstance<SpecialItemTriggerDefinition>().map {
+                SpecialItemTrigger(goalId, spaceId, variables, playerManager, callback, it)
+            }
         }
-
-        val allAutomatedGoals = specialItemTriggerRegistry.keys
     }
 
     override fun satisfiedBy(inventory: Collection<ItemStack>): Boolean {
