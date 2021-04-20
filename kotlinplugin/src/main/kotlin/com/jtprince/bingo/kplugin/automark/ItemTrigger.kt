@@ -18,7 +18,10 @@ open class ItemTrigger internal constructor(
 
     override val revertible = true
 
-    private val listenerRegistryId = AutoMarkBukkitListener.registerInventoryChange(::eventRaised)
+    private val listenerRegistryId = AutoMarkBukkitListener.registerInventoryChange(
+        AutoMarkBukkitListener.Callback {
+            eventRaised(it)
+        })
 
     override fun destroy() {
         AutoMarkBukkitListener.unregister(listenerRegistryId)

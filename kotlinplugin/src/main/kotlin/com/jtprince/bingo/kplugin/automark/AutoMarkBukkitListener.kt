@@ -12,7 +12,6 @@ import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.plugin.EventExecutor
 import kotlin.reflect.KClass
 
-typealias BukkitListenerCallback = (event: Event) -> Unit
 typealias EventClass = KClass<out Event>
 
 /**
@@ -23,17 +22,20 @@ typealias EventClass = KClass<out Event>
  * whenever that event occurs.
  */
 object AutoMarkBukkitListener : Listener, EventExecutor {
+    class Callback <EventType : Event> (internal val callback: (EventType) -> Unit)
+        : (EventType) -> Unit by callback
+
     /** Event Classes that we already have a Bukkit Listener for. */
     private val registeredEventTypes = HashSet<EventClass>()
 
     /** Maps each Event Class to all of the listeners we have registered for that event. */
-    private val activeEventListenerMap = HashMap<EventClass, HashSet<BukkitListenerCallback>>()
+    private val activeEventListenerMap = HashMap<EventClass, HashSet<Callback<*>>>()
 
     /** Maps the ID given in [register] to a callback so we can unregister it. */
-    private val regEventListeners = HashMap<Int, Pair<EventClass, BukkitListenerCallback>>()
+    private val regEventListeners = HashMap<Int, Pair<EventClass, Callback<*>>>()
 
     /** Maps the ID given in [registerInventoryChange] to a callback so we can unregister. */
-    private val regInvListeners = HashMap<Int, BukkitListenerCallback>()
+    private val regInvListeners = HashMap<Int, Callback<Event>>()
 
     private var lastId = 0
     private val inventoryChangeEventClasses = setOf(
@@ -46,7 +48,8 @@ object AutoMarkBukkitListener : Listener, EventExecutor {
      * happens.
      * @return A unique "registry ID" that can be used to unregister this callback.
      */
-    fun register(eventType: EventClass, callback: BukkitListenerCallback): Int {
+    fun <EventType: Event> register(eventType: KClass<EventType>,
+                                    callback: Callback<EventType>): Int {
         listenToEvent(eventType)
 
         val list = activeEventListenerMap.getOrPut(eventType) { hashSetOf() }
@@ -63,8 +66,10 @@ object AutoMarkBukkitListener : Listener, EventExecutor {
      * whenever an inventory changes.
      * @return A unique "registry ID" that can be used to unregister this callback.
      */
-    fun registerInventoryChange(callback: BukkitListenerCallback): Int {
-        inventoryChangeEventClasses.forEach(::listenToEvent)
+    fun registerInventoryChange(callback: Callback<Event>): Int {
+        inventoryChangeEventClasses.forEach{
+            listenToEvent(it)
+        }
 
         val id = lastId++
         regInvListeners[id] = callback
@@ -99,7 +104,8 @@ object AutoMarkBukkitListener : Listener, EventExecutor {
      */
     override fun execute(listener: Listener, event: Event) {
         for (trigger in activeEventListenerMap[event::class] ?: emptySet()) {
-            trigger.invoke(event)
+            @Suppress("UNCHECKED_CAST")
+            (trigger as Callback<in Event>).callback(event)
         }
 
         if (event::class in inventoryChangeEventClasses) {

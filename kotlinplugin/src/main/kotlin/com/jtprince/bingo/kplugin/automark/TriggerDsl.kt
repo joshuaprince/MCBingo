@@ -87,11 +87,11 @@ internal abstract class TriggerDslDefinition
 
 internal class EventTriggerDefinition<EventType: Event>(
     val eventType: KClass<EventType>,
-    val function: (Parameters<out EventType>) -> Boolean
+    val function: (Parameters<EventType>) -> Boolean
 ) : TriggerDslDefinition() {
     class Parameters<EventType: Event>(
         val event: EventType,
-        val trigger: EventTrigger,
+        val trigger: EventTrigger<EventType>,
     ) {
         val vars = trigger.variables
     }

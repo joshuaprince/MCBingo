@@ -16,13 +16,13 @@ import org.bukkit.event.vehicle.VehicleEvent
 import org.bukkit.event.weather.WeatherEvent
 import org.bukkit.event.world.WorldEvent
 
-class EventTrigger internal constructor(
+class EventTrigger<EventType : Event> internal constructor(
     goalId: String,
     spaceId: Int,
     variables: SetVariables,
     playerManager: PlayerManager,
     callback: AutoMarkCallback,
-    private val triggerDefinition: EventTriggerDefinition<*>,
+    private val triggerDefinition: EventTriggerDefinition<EventType>,
 ) : AutoMarkTrigger(goalId, spaceId, variables, playerManager, callback) {
 
     companion object {
@@ -52,8 +52,10 @@ class EventTrigger internal constructor(
 
     override val revertible: Boolean = false
 
-    private val listenerRegistryId =
-        AutoMarkBukkitListener.register(triggerDefinition.eventType, ::eventRaised)
+    private val listenerRegistryId = AutoMarkBukkitListener.register(triggerDefinition.eventType,
+        AutoMarkBukkitListener.Callback {
+            eventRaised(it)
+        })
 
     override fun destroy() {
         AutoMarkBukkitListener.unregister(listenerRegistryId)
@@ -62,12 +64,11 @@ class EventTrigger internal constructor(
     /**
      * Listener callback that is called EVERY time this EventListener's tracked event is fired.
      */
-    private fun eventRaised(event: Event) {
+    private fun eventRaised(event: EventType) {
         val player = forWhom(playerManager, event) ?: return
 
         val triggerDefParams = EventTriggerDefinition.Parameters(event, this)
-        @Suppress("UNCHECKED_CAST")  // TODO figure out if this can be worked around
-        val satisfied = triggerDefinition.function.invoke(triggerDefParams as EventTriggerDefinition.Parameters<Nothing>)
+        val satisfied = triggerDefinition.function.invoke(triggerDefParams)
 
         if (satisfied || revertible) {
             callback(player, spaceId, satisfied)
