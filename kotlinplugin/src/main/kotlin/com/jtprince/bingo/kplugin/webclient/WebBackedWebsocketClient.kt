@@ -96,9 +96,10 @@ class WebBackedWebsocketClient(
     private suspend fun ClientWebSocketSession.txLoop() {
         while (true) {
             val frame = txQueue.receive()
+            @Suppress("BlockingMethodInNonBlockingContext")  // TODO?
             val text = withContext(Dispatchers.IO) { mapper.writeValueAsString(frame) }
             send(Frame.Text(text))
-            println(text)
+            BingoPlugin.logger.fine("Tx message: $text")
         }
     }
 

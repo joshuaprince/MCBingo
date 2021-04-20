@@ -3,6 +3,9 @@ package com.jtprince.bingo.kplugin.game
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.jtprince.bingo.kplugin.Messages
+import com.jtprince.bingo.kplugin.Messages.bingoTell
+import com.jtprince.bingo.kplugin.Messages.bingoTellNotReady
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import org.bukkit.command.CommandSender
 
@@ -13,6 +16,7 @@ class WebBackedGameProto(
     creator: CommandSender,
     val settings: WebGameSettings,
 ) : BingoGame(creator, "CreatingGame", emptySet()) {
+
     override var state: State = State.BOARD_GENERATING
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -28,14 +32,17 @@ class WebBackedGameProto(
         @JsonProperty("game_code") val gameCode: String,
     )
 
-    override fun destroyGame() { }
-
-    override fun signalStart() {
-        TODO("Not yet implemented")
+    override fun signalStart(sender: CommandSender?) {
+        sender?.bingoTellNotReady()
     }
 
-    override fun signalEnd() {
-        TODO("Not yet implemented")
+    override fun signalEnd(sender: CommandSender?) {
+        state = State.DONE
+        Messages.bingoAnnounceEnd()
+    }
+
+    override fun signalDestroy(sender: CommandSender?) {
+        // Nothing to do.
     }
 
     override fun receiveAutomark(bingoPlayer: BingoPlayer, spaceId: Int, satisfied: Boolean) {

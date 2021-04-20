@@ -3,6 +3,8 @@ package com.jtprince.bingo.kplugin.game
 import com.jtprince.bingo.kplugin.BingoConfig
 import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.Messages
+import com.jtprince.bingo.kplugin.Messages.bingoTell
+import com.jtprince.bingo.kplugin.Messages.bingoTellNotReady
 import com.jtprince.bingo.kplugin.board.Space
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import com.jtprince.bingo.kplugin.webclient.WebBackedWebsocketClient
@@ -42,20 +44,18 @@ class WebBackedGame(
         generateWorlds()
     }
 
-    override fun destroyGame() {
-        Messages.basicAnnounce("The game is over, returning you to the spawn world!")
-        websocketClient.destroy()
-    }
-
     private fun generateWorlds() {
         BingoPlugin.server.scheduler.runTask(BingoPlugin) { ->
-            Messages.announcePreparingGame(gameCode)
+            Messages.bingoAnnouncePreparingGame(gameCode)
             val players = playerManager.localPlayers
             for (p in players) {
                 playerManager.prepareWorldSet(gameCode, p)
+                /* Allow for early destruction. */
+                if (state == State.DESTROYING) return@runTask
             }
+
             BingoPlugin.logger.info("Finished generating " + players.size + " worlds")
-            Messages.announceWorldsGenerated(players)
+            Messages.bingoAnnounceWorldsGenerated(players)
             worldsReady = true
             tryToMoveToReady()
         }
@@ -67,17 +67,34 @@ class WebBackedGame(
             !worldsReady -> state = State.WORLDS_GENERATING
             else -> {
                 state = State.READY
-                Messages.announceGameReady(gameCode, playerManager.localPlayers, creator)
+                Messages.bingoAnnounceGameReady(gameCode, playerManager.localPlayers, creator)
             }
         }
     }
 
-    override fun signalStart() {
+    override fun signalStart(sender: CommandSender?) {
+        if (state != State.READY) {
+            sender?.bingoTellNotReady()
+            return
+        }
+
         websocketClient.sendStartGame()
     }
 
-    override fun signalEnd() {
+    override fun signalEnd(sender: CommandSender?) {
+        if (state <= State.READY) {
+            sender?.bingoTell("The game is not running!")
+            return
+        }
+
         websocketClient.sendEndGame()
+    }
+
+    override fun signalDestroy(sender: CommandSender?) {
+        // Spaces are destroyed in the superclass.
+        sender?.bingoTell("Game destroyed.")
+        websocketClient.destroy()
+        startEffects.destroy()
     }
 
     override fun receiveAutomark(bingoPlayer: BingoPlayer, spaceId: Int, satisfied: Boolean) {
@@ -102,7 +119,7 @@ class WebBackedGame(
 
     private fun receiveFailedConnection() {
         state = State.FAILED
-        Messages.announceGameFailed()
+        Messages.bingoAnnounceGameFailed()
         // TODO: `/bingo retry` command?
     }
 
@@ -148,7 +165,8 @@ class WebBackedGame(
             "start" -> {
                 if (state != State.READY) {
                     BingoPlugin.logger.warning(
-                        "Web backend sent a Start Game message when game is not ready. Ignoring.")
+                        "Web backend sent a Start Game message when game is not ready. Ignoring."
+                    )
                     return
                 }
 
@@ -158,12 +176,13 @@ class WebBackedGame(
             "end" -> {
                 if (state != State.RUNNING && state != State.COUNTING_DOWN) {
                     BingoPlugin.logger.warning(
-                        "Web backend sent an End Game message when game is not running. Ignoring.")
+                        "Web backend sent an End Game message when game is not running. Ignoring."
+                    )
                     return
                 }
 
                 state = State.DONE
-                Messages.basicAnnounce("The game has ended!")
+                Messages.bingoAnnounceEnd()
                 startEffects.doEndEffects(winner)
             }
             else -> {

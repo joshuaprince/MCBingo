@@ -1,5 +1,6 @@
 package com.jtprince.bingo.kplugin
 
+import com.jtprince.bingo.kplugin.Messages.bingoTell
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.WorldCreator
@@ -64,7 +65,10 @@ object WorldManager {
                 val world = world(env) ?: continue
 
                 // Move all players in this world to the spawn world
-                world.players.forEach { it.teleport(spawnWorld.spawnLocation) }
+                world.players.forEach {
+                    it.teleport(spawnWorld.spawnLocation)
+                    it.bingoTell("The game is over, returning you to the spawn world.")
+                }
 
                 Bukkit.getServer().unloadWorld(world, BingoConfig.saveWorlds)
                 worldSetWorldMap.remove(world)

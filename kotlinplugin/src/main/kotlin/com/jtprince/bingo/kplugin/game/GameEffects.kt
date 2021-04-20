@@ -23,6 +23,9 @@ class GameEffects(
     private val bukkitPlayers = playerManager.bukkitPlayers
     private var countdown = 0
 
+    private var startSeqDoneTaskId: Int? = null
+    private var countdownTaskId: Int? = null
+
     fun doStartEffects() {
         BingoPlugin.server.scheduler.scheduleSyncDelayedTask(BingoPlugin) {
             val length = 7 * 20
@@ -33,8 +36,9 @@ class GameEffects(
             countdown = 7
             doCountdown()
 
-            BingoPlugin.server.scheduler.scheduleSyncDelayedTask(
-                BingoPlugin, startSequenceDone, length.toLong())
+            startSeqDoneTaskId = BingoPlugin.server.scheduler.scheduleSyncDelayedTask(
+                BingoPlugin, { startSeqDoneTaskId = null ; startSequenceDone() }, length.toLong()
+            )
         }
     }
 
@@ -45,6 +49,11 @@ class GameEffects(
                 FireworkUtils.spawnSeveralFireworks(BingoPlugin, it)
             }
         }
+    }
+
+    fun destroy() {
+        startSeqDoneTaskId?.also { BingoPlugin.server.scheduler.cancelTask(it) }
+        countdownTaskId?.also { BingoPlugin.server.scheduler.cancelTask(it) }
     }
 
     private fun wipe() {
@@ -86,7 +95,9 @@ class GameEffects(
         }
         this.countdown--
         if (this.countdown > 0) {
-            BingoPlugin.server.scheduler.scheduleSyncDelayedTask(BingoPlugin, ::doCountdown, 20)
+            countdownTaskId = BingoPlugin.server.scheduler.scheduleSyncDelayedTask(
+                BingoPlugin, ::doCountdown, 20
+            )
         }
     }
 

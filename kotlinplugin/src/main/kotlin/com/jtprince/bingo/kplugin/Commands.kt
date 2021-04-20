@@ -1,9 +1,8 @@
 package com.jtprince.bingo.kplugin
 
+import com.jtprince.bingo.kplugin.Messages.bingoTell
 import com.jtprince.bingo.kplugin.automark.AutoMarkTrigger
-import com.jtprince.bingo.kplugin.board.SetVariables
 import com.jtprince.bingo.kplugin.game.BingoGame
-import com.jtprince.bingo.kplugin.game.WebBackedGame
 import com.jtprince.bingo.kplugin.game.WebBackedGameProto
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import dev.jorel.commandapi.CommandAPICommand
@@ -12,7 +11,6 @@ import dev.jorel.commandapi.arguments.CustomArgument.CustomArgumentException
 import dev.jorel.commandapi.arguments.CustomArgument.MessageBuilder
 import dev.jorel.commandapi.executors.CommandExecutor
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
-import net.kyori.adventure.text.Component
 import org.bukkit.World
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -66,6 +64,11 @@ object Commands {
                 commandEnd(sender)
             })
 
+        val destroyCmd = CommandAPICommand("destroy")
+            .executes(CommandExecutor { sender: CommandSender, _: Array<Any> ->
+                commandDestroy(sender)
+            })
+
         val goSpawnCmd = CommandAPICommand("go")
             .withArguments(LiteralArgument("spawn"))
             .executesPlayer(PlayerCommandExecutor { sender: Player, _: Array<Any> ->
@@ -73,7 +76,7 @@ object Commands {
             })
         val goCmd = CommandAPICommand("go")
             .withArguments(CustomArgument("player") { input: String ->
-                val currentGame = GameManager.currentGame
+                val currentGame = BingoGame.currentGame
                     ?: throw CustomArgumentException(
                         MessageBuilder("No games running.")
                     )
@@ -86,7 +89,7 @@ object Commands {
                     return@CustomArgument player
                 }
             }.overrideSuggestions { _ ->
-                val currentGame = GameManager.currentGame
+                val currentGame = BingoGame.currentGame
                 return@overrideSuggestions currentGame?.playerManager?.localPlayers?.
                     map(BingoPlayer::slugName)?.toTypedArray() ?: arrayOf()
             })
@@ -114,6 +117,7 @@ object Commands {
         root.withSubcommand(prepareCmdShapedDiffForced)
         root.withSubcommand(startCmd)
         root.withSubcommand(endCmd)
+        root.withSubcommand(destroyCmd)
         root.withSubcommand(goCmd)
         root.withSubcommand(goSpawnCmd)
         if (BingoConfig.debug) {
@@ -124,47 +128,41 @@ object Commands {
     }
 
     private fun commandPrepare(sender: CommandSender, settings: WebBackedGameProto.WebGameSettings) {
-        GameManager.prepareNewWebGame(sender, settings)
+        BingoGame.prepareNewWebGame(sender, settings)
     }
 
     private fun commandStart(sender: CommandSender) {
-        val game = GameManager.currentGame ?: run {
-            Messages.basicTell(sender,
-                "No game is prepared! Use /bingo prepare <gameCode>")
+        val game = BingoGame.currentGame ?: run {
+            sender.bingoTell("No game is prepared! Use /bingo prepare")
             return
         }
 
-        if (game.state != BingoGame.State.READY) {
-            Messages.basicTell(sender, "Game is not ready to be started!")
-            return
-        }
-
-        game.signalStart()
+        game.signalStart(sender)
     }
 
     private fun commandEnd(sender: CommandSender) {
-        val game = GameManager.currentGame ?: run {
-            Messages.basicTell(sender, "No game is running!")
+        val game = BingoGame.currentGame ?: run {
+            sender.bingoTell("No game is running!")
             return
         }
 
-        if (game.state != BingoGame.State.RUNNING) {
-            Messages.basicTell(sender, "Game is not running!")
-            return
-        }
+        game.signalEnd(sender)
+    }
 
-        game.signalEnd()
+    private fun commandDestroy(sender: CommandSender) {
+        /* Must call the Manager function directly so currentGame can be set to null */
+        BingoGame.destroyCurrentGame(sender)
     }
 
     private fun commandGo(sender: Player, destination: BingoPlayer?) {
         if (destination == null) {
             sender.teleport(WorldManager.spawnWorld.spawnLocation)
         } else {
-            val loc = GameManager.currentGame?.playerManager?.worldSet(destination)?.
+            val loc = BingoGame.currentGame?.playerManager?.worldSet(destination)?.
                     world(World.Environment.NORMAL)?.spawnLocation
 
             if (loc == null) {
-                Messages.basicTell(sender, "Couldn't send you to that player's world.")
+                sender.bingoTell("Couldn't send you to that player's world.")
             } else {
                 sender.teleport(loc)
             }
@@ -173,11 +171,13 @@ object Commands {
 
     private fun commandDebug(sender: Player, args: Array<String>) {
         val vars = HashMap<String, Int>()
+
         // TODO: Document this pattern
         val varArgs = if (args.size > 1) args[1].split(" ") else emptyList()
         for (i in 0 until varArgs.size-1 step 2) {
             vars[varArgs[i]] = varArgs[i+1].toInt()
         }
-        GameManager.debugGame(sender, args[0], vars.toMap())
+
+        BingoGame.prepareDebugGame(sender, args[0], vars.toMap())
     }
 }
