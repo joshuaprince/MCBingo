@@ -53,7 +53,7 @@ class EventTrigger<EventType : Event> internal constructor(
     override val revertible: Boolean = false
 
     private val listenerRegistryId = AutoMarkBukkitListener.register(triggerDefinition.eventType,
-        AutoMarkBukkitListener.Callback {
+        AutoMarkBukkitListener.Callback(triggerDefinition.eventType) {
             eventRaised(it)
         })
 

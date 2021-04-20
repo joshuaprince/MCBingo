@@ -19,7 +19,7 @@ open class ItemTrigger internal constructor(
     override val revertible = true
 
     private val listenerRegistryId = AutoMarkBukkitListener.registerInventoryChange(
-        AutoMarkBukkitListener.Callback {
+        AutoMarkBukkitListener.Callback(Event::class) {
             eventRaised(it)
         })
 

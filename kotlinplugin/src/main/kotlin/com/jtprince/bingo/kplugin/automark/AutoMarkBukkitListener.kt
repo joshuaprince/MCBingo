@@ -12,8 +12,6 @@ import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.plugin.EventExecutor
 import kotlin.reflect.KClass
 
-typealias EventClass = KClass<out Event>
-
 /**
  * Container for all Bukkit Event Listeners.
  *
@@ -22,17 +20,19 @@ typealias EventClass = KClass<out Event>
  * whenever that event occurs.
  */
 object AutoMarkBukkitListener : Listener, EventExecutor {
-    class Callback <EventType : Event> (internal val callback: (EventType) -> Unit)
-        : (EventType) -> Unit by callback
+    class Callback<EventType : Event>(
+        internal val eventType: KClass<EventType>,
+        internal val callback: (EventType) -> Unit
+    ) : (EventType) -> Unit by callback
 
     /** Event Classes that we already have a Bukkit Listener for. */
-    private val registeredEventTypes = HashSet<EventClass>()
+    private val registeredEventTypes = HashSet<KClass<out Event>>()
 
     /** Maps each Event Class to all of the listeners we have registered for that event. */
-    private val activeEventListenerMap = HashMap<EventClass, HashSet<Callback<*>>>()
+    private val activeEventListenerMap = HashMap<KClass<out Event>, HashSet<Callback<*>>>()
 
     /** Maps the ID given in [register] to a callback so we can unregister it. */
-    private val regEventListeners = HashMap<Int, Pair<EventClass, Callback<*>>>()
+    private val regEventListeners = HashMap<Int, Callback<*>>()
 
     /** Maps the ID given in [registerInventoryChange] to a callback so we can unregister. */
     private val regInvListeners = HashMap<Int, Callback<Event>>()
@@ -57,7 +57,7 @@ object AutoMarkBukkitListener : Listener, EventExecutor {
 
         /* Give the caller a unique identifier that they can use to unregister */
         val id = lastId++
-        regEventListeners[id] = eventType to callback
+        regEventListeners[id] = callback
         return id
     }
 
@@ -86,7 +86,8 @@ object AutoMarkBukkitListener : Listener, EventExecutor {
 
         when {
             eventMapEntry != null -> {
-                activeEventListenerMap[eventMapEntry.first]!! -= eventMapEntry.second
+                val lst = activeEventListenerMap[eventMapEntry.eventType]!!
+                lst -= eventMapEntry
                 regEventListeners -= registryId
             }
             invMapEntry != null -> {
@@ -116,7 +117,7 @@ object AutoMarkBukkitListener : Listener, EventExecutor {
     /**
      * Ensure that we have a Bukkit listener for this event class.
      */
-    private fun listenToEvent(eventType: EventClass) {
+    private fun listenToEvent(eventType: KClass<out Event>) {
         if (!registeredEventTypes.contains(eventType)) {
             Bukkit.getServer().pluginManager.registerEvent(
                 eventType.java, this, EventPriority.MONITOR, this, BingoPlugin
