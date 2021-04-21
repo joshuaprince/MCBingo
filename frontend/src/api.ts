@@ -4,6 +4,7 @@ import z from "myzod";
 import { IBingoGameState } from "./BingoGame";
 import { TBoard } from "./interface/IBoard";
 import { IPlayerBoardMarking, TPlayerBoard } from "./interface/IPlayerBoard";
+import { TMessage } from "./interface/IMessage";
 
 type SetState = React.Dispatch<React.SetStateAction<IBingoGameState>>;
 
@@ -28,6 +29,11 @@ export const onApiMessage = (setState: SetState, message: any) => {
   if (message.hasOwnProperty("pboards")) {
     const pbs = z.array(TPlayerBoard).parse(message["pboards"]);
     setState(state => ({...state, playerBoards: pbs}));
+  }
+
+  if (message.hasOwnProperty("message")) {
+    const msg = TMessage.parse(message["message"]);
+    setState(state => ({...state, messages: [msg, ...state.messages]}));
   }
 }
 

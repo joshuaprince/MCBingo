@@ -13,6 +13,7 @@ from backend.models.player_board import PlayerBoard
 from backend.models.player_board_marking import PlayerBoardMarking
 from backend.serializers.board_player import BoardPlayerSerializer
 from backend.serializers.board_plugin import BoardPluginSerializer
+from backend.serializers.message import MessageSerializer
 from backend.serializers.player_board import PlayerBoardSerializer
 from generation.board_generator import generate_board
 
@@ -79,6 +80,13 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
             changed = await self.rx_set_automarks(space_ids)
             if changed:
                 broadcast_board = True
+
+        if action == 'message':
+            content_minecraft = text_data_json['minecraft']
+            msg = MessageSerializer({
+                'sender': self.client_id, 'minecraft': content_minecraft
+            })
+            await self.send_message_all_consumers(msg.data)
 
         if broadcast_board:
             await self.send_board_all_consumers()
@@ -159,6 +167,19 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
             'game_state': event['to_state']
         }))
 
+    async def send_message_all_consumers(self, message):
+        await self.channel_layer.group_send(
+            self.game_code, {
+                'type': 'send_message_to_ws',
+                'message': message,
+            }
+        )
+
+    async def send_message_to_ws(self, event=None):
+        await self.send(text_data=json.dumps({
+            'message': event['message']
+        }))
+
 
 @log_consumer_exceptions
 class PlayerWebConsumer(BaseWebConsumer):
@@ -167,6 +188,7 @@ class PlayerWebConsumer(BaseWebConsumer):
         self.allowed_actions = [
             'board_mark',
             'reveal_board',
+            'message',
         ]
 
     async def connect(self):
@@ -214,6 +236,7 @@ class PluginBackendConsumer(BaseWebConsumer):
             'game_state',
             'reveal_board',
             'set_automarks',
+            'message',
         ]
 
     async def connect(self):

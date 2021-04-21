@@ -123,4 +123,8 @@ class WebBackedWebsocketClient(
     fun sendAutoMarks(playerSpaceIdsMap: Map<String, Collection<Int>>) {
         txQueue.sendBlocking(TxMessageSetAutoMarks(playerSpaceIdsMap))
     }
+
+    fun sendMessage(msgJson: String) {
+        txQueue.sendBlocking(TxMessageMessage(msgJson))
+    }
 }
