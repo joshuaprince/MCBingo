@@ -50,7 +50,7 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
         action = text_data_json.get('action')
 
         if action not in self.allowed_actions:
-            print("WebSocket " + self.client_id + " attempted disallowed action " + action)
+            print(f"WebSocket {self.client_id} attempted disallowed action {action}")
             return
 
         if action == 'board_mark' and self.player_board_id:
@@ -82,9 +82,12 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
                 broadcast_board = True
 
         if action == 'message':
-            content_minecraft = text_data_json['minecraft']
+            content_mc_tellraw = text_data_json.get('mc_tellraw')
+            content_mc_minimessage = text_data_json.get('mc_minimessage')
             msg = MessageSerializer({
-                'sender': self.client_id, 'minecraft': content_minecraft
+                'sender': self.client_id,
+                'mc_tellraw': content_mc_tellraw,
+                'mc_minimessage': content_mc_minimessage,
             })
             await self.send_message_all_consumers(msg.data)
 
@@ -188,7 +191,7 @@ class PlayerWebConsumer(BaseWebConsumer):
         self.allowed_actions = [
             'board_mark',
             'reveal_board',
-            'message',
+            # 'message',
         ]
 
     async def connect(self):
@@ -241,12 +244,12 @@ class PluginBackendConsumer(BaseWebConsumer):
 
     async def connect(self):
         await super().connect()
-        self.client_id = '{' + self.scope['url_route']['kwargs'].get('client_id') + '}'
-        print(f"{self.client_id} joined game {self.game_code}.")
+        self.client_id = self.scope['url_route']['kwargs'].get('client_id')
+        print(f"{{{self.client_id}}} joined game {self.game_code}.")
 
     async def disconnect(self, code):
         await super().disconnect(code)
-        print(f"{self.client_id} disconnected from game {self.game_code}.")
+        print(f"{{{self.client_id}}} disconnected from game {self.game_code}.")
 
     async def send_board_to_ws(self, event=None):
         board = await database_sync_to_async(BoardPluginSerializer.from_id)(self.board_id)

@@ -1,6 +1,5 @@
 package com.jtprince.bingo.kplugin.game
 
-import com.jtprince.bingo.kplugin.BingoConfig
 import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.Messages
 import com.jtprince.bingo.kplugin.Messages.bingoTell
@@ -8,6 +7,7 @@ import com.jtprince.bingo.kplugin.Messages.bingoTellNotReady
 import com.jtprince.bingo.kplugin.board.Space
 import com.jtprince.bingo.kplugin.player.BingoPlayer
 import com.jtprince.bingo.kplugin.webclient.WebBackedWebsocketClient
+import com.jtprince.bingo.kplugin.webclient.WebMessageRelay
 import com.jtprince.bingo.kplugin.webclient.WebsocketRxMessage
 import com.jtprince.bingo.kplugin.webclient.model.WebModelBoard
 import com.jtprince.bingo.kplugin.webclient.model.WebModelPlayerBoard
@@ -20,9 +20,13 @@ class WebBackedGame(
 ) : BingoGame(creator, gameCode, players) {
 
     override var state: State = State.WAITING_FOR_WEBSOCKET
+    private val clientId = "KotlinPlugin${hashCode() % 10000}:" +
+            players.map(BingoPlayer::slugName).joinToString(",")
     private val websocketClient = WebBackedWebsocketClient(
-        gameCode, BingoConfig.websocketUrl(gameCode, players), this::receiveMessage,
-        this::receiveFailedConnection)
+        gameCode, clientId, this::receiveMessage,
+        this::receiveFailedConnection
+    )
+    private val messageRelay = WebMessageRelay(websocketClient)
     private val playerBoardCache = players.associateWith(::PlayerBoardCache)
 
     /* Both of the following must be ready for the game to be put in the "READY" state */
@@ -93,6 +97,7 @@ class WebBackedGame(
     override fun signalDestroy(sender: CommandSender?) {
         // Spaces are destroyed in the superclass.
         sender?.bingoTell("Game destroyed.")
+        messageRelay.destroy()
         websocketClient.destroy()
         startEffects.destroy()
     }
@@ -115,6 +120,7 @@ class WebBackedGame(
         msg.board?.run(this::receiveBoard)
         msg.pboards?.run(this::receivePlayerBoards)
         msg.gameState?.run(this::receiveGameStateTransition)
+        msg.message?.run(messageRelay::receive)
     }
 
     private fun receiveFailedConnection() {

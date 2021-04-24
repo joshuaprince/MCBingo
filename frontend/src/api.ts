@@ -32,8 +32,10 @@ export const onApiMessage = (setState: SetState, message: any) => {
   }
 
   if (message.hasOwnProperty("message")) {
+    /* TODO
     const msg = TMessage.parse(message["message"]);
     setState(state => ({...state, messages: [msg, ...state.messages]}));
+     */
   }
 }
 

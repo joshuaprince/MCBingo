@@ -9,7 +9,6 @@ import { getWebSocketUrl, onApiMessage, updateWebSocket } from "./api";
 import { LoadingSpinner } from "./component/LoadingSpinner";
 import { RevealButton } from "./component/RevealButton";
 import { IMessage } from "./interface/IMessage";
-import { ChatBox } from "./component/ChatBox";
 
 type IProps = {
   gameCode: string;
@@ -58,7 +57,7 @@ export const BingoGame: React.FunctionComponent<IProps> = (props: IProps) => {
       <SecondaryBoardsSidebar board={state.board} playerBoards={secondaryPlayers}/>
       {state.connecting && <LoadingSpinner/>}
       {state.board.obscured && <RevealButton/>}
-      <ChatBox messages={state.messages}/>
+      {/*<ChatBox messages={state.messages}/>*/}
     </div>
   );
 }
