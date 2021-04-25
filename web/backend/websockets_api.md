@@ -230,6 +230,10 @@ board. Each Goal object consists of:
 - A `type` field, which contains the goal type (default or negative).
 - An optional `variables` object, which lists any variables present on this 
   goal.
+  
+The web backend may send multiple copies of this packet to a Plugin during the
+course of a game. Any packets after the first may be ignored. This means that
+a board may not be modified after a Plugin websocket is opened.
 
 ### Player Boards
 

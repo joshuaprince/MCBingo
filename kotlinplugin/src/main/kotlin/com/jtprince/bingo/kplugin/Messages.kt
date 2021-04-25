@@ -49,6 +49,10 @@ object Messages {
         bingoTell(Component.text(msg))
     }
 
+    fun Audience.bingoTellError(msg: String) {
+        bingoTell(Component.text(msg).color(NamedTextColor.RED))
+    }
+
     fun Audience.bingoTell(msg: Component) {
         sendWithHeader(this, msg)
     }
@@ -62,13 +66,15 @@ object Messages {
     }
 
     fun bingoAnnouncePreparingGame(gameCode: String) {
-        var component = Component
+        val component = Component
             .text("Generating worlds for new game ")
             .append(Component.text(gameCode).color(NamedTextColor.BLUE))
             .append(Component.text("."))
         announceWithHeader(component)
-        component = Component.text("This will cause the server to lag!")
-        announceWithHeader(component)
+        Bukkit.getServer().sendActionBar(
+            Component.text("Generating Worlds - Server will lag!")
+                .color(NamedTextColor.GOLD)
+        )
     }
 
     fun bingoAnnounceGameFailed() {
@@ -143,8 +149,7 @@ object Messages {
     }
 
     fun Audience.bingoTellNotReady() {
-        bingoTell(Component.text("The game is not ready to be started!")
-            .color(NamedTextColor.RED))
+        bingoTellError("The game is not ready to be started!")
     }
 
     fun bingoTellTeams(players: Collection<BingoPlayer>) {

@@ -3,6 +3,7 @@ package com.jtprince.bingo.kplugin.game
 import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.Messages
 import com.jtprince.bingo.kplugin.Messages.bingoTell
+import com.jtprince.bingo.kplugin.Messages.bingoTellError
 import com.jtprince.bingo.kplugin.Messages.bingoTellNotReady
 import com.jtprince.bingo.kplugin.board.Space
 import com.jtprince.bingo.kplugin.player.BingoPlayer
@@ -53,6 +54,7 @@ class WebBackedGame(
         BingoPlugin.server.scheduler.runTask(BingoPlugin) { ->
             Messages.bingoAnnouncePreparingGame(gameCode)
             val players = playerManager.localPlayers
+            Messages.bingoTellTeams(players)
             for (p in players) {
                 playerManager.prepareWorldSet(gameCode, p)
                 /* Allow for early destruction. */
@@ -88,7 +90,7 @@ class WebBackedGame(
 
     override fun signalEnd(sender: CommandSender?) {
         if (state <= State.READY) {
-            sender?.bingoTell("The game is not running!")
+            sender?.bingoTellError("The game is not running!")
             return
         }
 
@@ -132,7 +134,7 @@ class WebBackedGame(
 
     private fun receiveBoard(board: WebModelBoard) {
         if (spaces.isNotEmpty()) {
-            BingoPlugin.logger.warning("Received another board, ignoring it.")  // TODO
+            BingoPlugin.logger.fine("Received another board, ignoring it.")  // TODO
             return
         }
 
@@ -156,7 +158,6 @@ class WebBackedGame(
 
     private fun receivePlayerBoards(playerBoards: List<WebModelPlayerBoard>) {
         for (pb in playerBoards) {
-            // TODO Do we even need remote players any more?
             val player = playerManager.bingoPlayer(pb.playerName, false) ?: continue
             playerBoardCache[player]?.updateFromWeb(pb)
         }
