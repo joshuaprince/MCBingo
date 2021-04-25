@@ -8,7 +8,7 @@ import { SecondaryBoardsSidebar } from "./component/SecondaryBoardsSidebar";
 import { getWebSocketUrl, onApiMessage, updateWebSocket } from "./api";
 import { LoadingSpinner } from "./component/LoadingSpinner";
 import { RevealButton } from "./component/RevealButton";
-import { IMessage } from "./interface/IMessage";
+import { IGameMessage } from "./interface/IGameMessage";
 
 type IProps = {
   gameCode: string;
@@ -18,7 +18,7 @@ type IProps = {
 export type IBingoGameState = {
   board: IBoard;
   playerBoards: IPlayerBoard[];
-  messages: IMessage[];
+  messages: IGameMessage[];
   connecting: boolean;
 }
 

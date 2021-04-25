@@ -1,10 +1,9 @@
 from rest_framework import serializers
 
 
-class MessageSerializer(serializers.Serializer):
+class MessageRelaySerializer(serializers.Serializer):
     sender = serializers.CharField(max_length=1024)
-    mc_tellraw = serializers.JSONField(required=False)
-    mc_minimessage = serializers.CharField(required=False)
+    json = serializers.JSONField(required=False)
 
     def update(self, instance, validated_data):
         raise NotImplementedError("Cannot update a MessageSerializer.")

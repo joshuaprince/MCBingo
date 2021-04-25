@@ -4,7 +4,6 @@ import z from "myzod";
 import { IBingoGameState } from "./BingoGame";
 import { TBoard } from "./interface/IBoard";
 import { IPlayerBoardMarking, TPlayerBoard } from "./interface/IPlayerBoard";
-import { TMessage } from "./interface/IMessage";
 
 type SetState = React.Dispatch<React.SetStateAction<IBingoGameState>>;
 

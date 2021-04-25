@@ -7,15 +7,18 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.utils import timezone
 
+from backend.announcement import announcement_board_marked
 from backend.log_consumer_exceptions import log_consumer_exceptions
+from backend.models import Color, Space
 from backend.models.board import Board
 from backend.models.player_board import PlayerBoard
 from backend.models.player_board_marking import PlayerBoardMarking
 from backend.serializers.board_player import BoardPlayerSerializer
 from backend.serializers.board_plugin import BoardPluginSerializer
-from backend.serializers.message import MessageSerializer
+from backend.serializers.message import MessageRelaySerializer
 from backend.serializers.player_board import PlayerBoardSerializer
 from generation.board_generator import generate_board
+from generation.goals import ConcreteGoal
 
 
 @log_consumer_exceptions
@@ -50,7 +53,7 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
         action = text_data_json.get('action')
 
         if action not in self.allowed_actions:
-            print(f"WebSocket {self.client_id} attempted disallowed action {action}")
+            print(f"WebSocket {self.client_id} attempted disallowed action {{{action}}}")
             return
 
         if action == 'board_mark' and self.player_board_id:
@@ -81,15 +84,13 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
             if changed:
                 broadcast_board = True
 
-        if action == 'message':
-            content_mc_tellraw = text_data_json.get('mc_tellraw')
-            content_mc_minimessage = text_data_json.get('mc_minimessage')
-            msg = MessageSerializer({
+        if action == 'message_relay':
+            content_mc_tellraw = text_data_json.get('json')
+            msg = MessageRelaySerializer({
                 'sender': self.client_id,
-                'mc_tellraw': content_mc_tellraw,
-                'mc_minimessage': content_mc_minimessage,
+                'json': content_mc_tellraw,
             })
-            await self.send_message_all_consumers(msg.data)
+            await self.send_message_relay_all_consumers(msg.data)
 
         if broadcast_board:
             await self.send_board_all_consumers()
@@ -112,12 +113,17 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
         )
 
     async def rx_mark_board_player(self, space_id, to_state: int = None, covert_marked: int = None):
-        changed = await mark_space(self.player_board_id, space_id, to_state, covert_marked)
+        changed, announcement = await mark_space(self.player_board_id, space_id, to_state, covert_marked)
         await mark_disconnected(self.player_board_id, False)
+        if announcement is not None:
+            await self.send_game_message_all_consumers(announcement)
         return changed
 
     async def rx_mark_board_admin(self, space_id, to_state, player):
-        return await mark_space_admin(self.board_id, player, space_id, to_state)
+        changed, announcement = await mark_space_admin(self.board_id, player, space_id, to_state)
+        if announcement is not None:
+            await self.send_game_message_all_consumers(announcement)
+        return changed
 
     async def rx_game_state(self, to_state):
         valid_states = ['start', 'end']
@@ -170,17 +176,30 @@ class BaseWebConsumer(AsyncJsonWebsocketConsumer, ABC):
             'game_state': event['to_state']
         }))
 
-    async def send_message_all_consumers(self, message):
+    async def send_game_message_all_consumers(self, message):
         await self.channel_layer.group_send(
             self.game_code, {
-                'type': 'send_message_to_ws',
+                'type': 'send_game_message_to_ws',
                 'message': message,
             }
         )
 
-    async def send_message_to_ws(self, event=None):
+    async def send_game_message_to_ws(self, event=None):
         await self.send(text_data=json.dumps({
-            'message': event['message']
+            'game_message': event['message']
+        }))
+
+    async def send_message_relay_all_consumers(self, message):
+        await self.channel_layer.group_send(
+            self.game_code, {
+                'type': 'send_message_relay_to_ws',
+                'message': message,
+            }
+        )
+
+    async def send_message_relay_to_ws(self, event=None):
+        await self.send(text_data=json.dumps({
+            'message_relay': event['message']
         }))
 
 
@@ -239,7 +258,7 @@ class PluginBackendConsumer(BaseWebConsumer):
             'game_state',
             'reveal_board',
             'set_automarks',
-            'message',
+            'message_relay',
         ]
 
     async def connect(self):
@@ -291,20 +310,41 @@ def mark_space(player_board_id: int, space_id: int,
                to_state: int = None, covert_marked: bool = None):
     """
     Mark a space on a player's board.
-    :return: True if the markings on the board were changed, False otherwise.
+    :return: (changed, announcement) - changed is a bool that indicates whether the board was
+             changed with this marking. announcement is an optional object that contains the
+             announcement that should be made, if any.
     """
     player_board_obj = PlayerBoard.objects.get(pk=player_board_id)
-    return player_board_obj.mark_space(space_id, to_state, covert_marked)
+    changed, announce = player_board_obj.mark_space(space_id, to_state, covert_marked)
+    if announce:
+        space = Space.objects.get(pk=space_id)
+        announcement = announcement_board_marked(
+            player_board_obj.player_name, Color(to_state),
+            ConcreteGoal.from_space(space).description()
+        )
+        return changed, announcement
+    else:
+        return changed, None
 
 
 @database_sync_to_async
 def mark_space_admin(board_id: int, player_name: str, space_id: int, to_state: int):
     """
     Mark a space on a player's board.
-    :return: True if the board was changed, False otherwise.
+    :return: (changed, announce) - a pair of booleans that indicate whether the board was
+             changed and whether it should be announced.
     """
     player_board_obj = PlayerBoard.objects.get_or_create(board_id=board_id, player_name=player_name)[0]
-    return player_board_obj.mark_space(space_id, to_state)
+    changed, announce = player_board_obj.mark_space(space_id, to_state)
+    if announce:
+        space = Space.objects.get(pk=space_id)
+        announcement = announcement_board_marked(
+            player_board_obj.player_name, Color(to_state),
+            ConcreteGoal.from_space(space).description()
+        )
+        return changed, announcement
+    else:
+        return changed, None
 
 
 @database_sync_to_async

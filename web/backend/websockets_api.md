@@ -117,21 +117,22 @@ Indicates to the server that this client is tracking and automatically marking
 the board for these space IDs.
 
 
-### message
+### message_relay
 Example:
 ```json
 {
-  "action": "message",
-  "minecraft": "{\"text\": \"a\"}"
+  "action": "message_relay",
+  "json": "{\"text\": \"a\"}"
 }
 ```
 
 Availability: Plugin socket only.
 
-Sends a text message that will be relayed to all connected clients, intended to
-be used to broadcast server events such as player advancements, deaths, and so
-on in Minecraft. The `message.minecraft` field must contain the message
-formatted as [Raw Minecraft JSON](https://minecraft.fandom.com/wiki/Raw_JSON_text_format).
+Sends a message that will be relayed to all connected clients, intended to be
+used to broadcast server events such as chat, player advancements, deaths, and
+so on in Minecraft. The `message.minecraft` field must contain the message
+formatted
+as [Raw Minecraft JSON](https://minecraft.fandom.com/wiki/Raw_JSON_text_format).
 
 ## Server to Client API
 
@@ -283,22 +284,67 @@ Example:
 }
 ```
 
-### Message
+### Game Message
 
-This packet contains a message that the client should display to the user. If
-sent to a player directly, it should be displayed in the app. If sent to a
-plugin, the message should be broadcast on the server.
+This packet contains a message that the client should display to the user. It
+indicates events such as board markings and player wins. If sent to a player
+directly, it should be displayed in the app (not currently supported). If sent
+to a plugin, the message should be broadcast on the server. Example:
 
 ```json
 {
-  "message": {
-    "message_id": 123,
-    "sender": "Bingo",
-    "minecraft": "{\"text\": \"a\""
+  "game_message": {
+    "formatted": {
+      "key": "bingo.message.marking.complete",
+      "player": "Alice",
+      "goal": "64 Cobblestone"
+    }
+  }
+}
+```
+
+The `formatted` object is guaranteed to have a `key` property, as well as other
+properties that dynamically describe parameters of the message. These are the
+currently supported message keys with the parameters they will include:
+
+```js
+{  // Alice has marked 64 Cobblestone!
+  "key": "bingo.message.marking.complete",
+  "player": "Alice",
+  "goal": "64 Cobblestone"
+}
+```
+```js
+{  // Alice has invalidated Never Use a Shield!
+  "key": "bingo.message.marking.invalidate",
+  "player": "Bob",
+  "goal": "Never Use a Shield"
+}
+```
+```js
+{  // Alice has won the game!
+  "key": "bingo.message.victory",
+  "player": "Alice",
+}
+```
+
+
+### Minecraft Message Relay
+
+This packet relays a message from one Minecraft server to another, such as a 
+chat or player death message. Example:
+
+```json
+{
+  "message_relay": {
+    "sender": "KotlinPlugin1234:Alice,Bob",
+    "json": "{\"text\": \"a\"}"
   }
 }
 ```
 
 `sender` is the client ID of the Bingo Plugin that sent this message. To 
 avoid doubled messages, a client should not print a message whose sender is its
-own client ID. `minecraft` is the message formatted as Minecraft Raw JSON.
+own client ID.
+
+

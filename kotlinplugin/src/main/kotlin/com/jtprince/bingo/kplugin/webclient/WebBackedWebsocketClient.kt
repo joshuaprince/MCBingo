@@ -6,7 +6,6 @@ import com.jtprince.bingo.kplugin.BingoConfig
 import com.jtprince.bingo.kplugin.BingoPlugin
 import io.ktor.client.*
 import io.ktor.client.features.websocket.*
-import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
@@ -127,6 +126,6 @@ class WebBackedWebsocketClient(
     }
 
     fun sendMessage(msgJson: String) {
-        txQueue.sendBlocking(TxMessageMessage(msgJson))
+        txQueue.sendBlocking(TxMessageMessageRelay(msgJson))
     }
 }

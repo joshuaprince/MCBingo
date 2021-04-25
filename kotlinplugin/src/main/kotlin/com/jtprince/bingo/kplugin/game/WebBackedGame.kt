@@ -10,6 +10,7 @@ import com.jtprince.bingo.kplugin.webclient.WebBackedWebsocketClient
 import com.jtprince.bingo.kplugin.webclient.WebMessageRelay
 import com.jtprince.bingo.kplugin.webclient.WebsocketRxMessage
 import com.jtprince.bingo.kplugin.webclient.model.WebModelBoard
+import com.jtprince.bingo.kplugin.webclient.model.WebModelGameMessage
 import com.jtprince.bingo.kplugin.webclient.model.WebModelPlayerBoard
 import org.bukkit.command.CommandSender
 
@@ -120,7 +121,8 @@ class WebBackedGame(
         msg.board?.run(this::receiveBoard)
         msg.pboards?.run(this::receivePlayerBoards)
         msg.gameState?.run(this::receiveGameStateTransition)
-        msg.message?.run(messageRelay::receive)
+        msg.gameMessage?.run(this::receiveGameMessage)
+        msg.messageRelay?.run(messageRelay::receive)
     }
 
     private fun receiveFailedConnection() {
@@ -194,6 +196,30 @@ class WebBackedGame(
             else -> {
                 BingoPlugin.logger.severe(
                     "Web backend sent an unrecognized game state transition: $newGameState")
+            }
+        }
+    }
+
+    private fun receiveGameMessage(msg: WebModelGameMessage) {
+        val player = msg.formatted.params["player"]?.run {
+            playerManager.bingoPlayer(msg.formatted.params["player"].toString(), true)
+        }
+
+        when (msg.formatted.key) {
+            "bingo.message.marking.complete", "bingo.message.marking.invalidate" -> {
+                if (player == null) {
+                    BingoPlugin.logger.severe("Got marking without a player: ${msg.formatted.params}")
+                    return
+                }
+                val invalidate = "invalidate" in msg.formatted.key
+                Messages.bingoAnnouncePlayerMarking(player, msg.formatted.params["goal"].toString(), invalidate)
+            }
+            "bingo.message.victory" -> {
+                if (player == null) {
+                    BingoPlugin.logger.severe("Got victory without a player: ${msg.formatted.params}")
+                    return
+                }
+                Messages.bingoAnnouncePlayerVictory(player)
             }
         }
     }

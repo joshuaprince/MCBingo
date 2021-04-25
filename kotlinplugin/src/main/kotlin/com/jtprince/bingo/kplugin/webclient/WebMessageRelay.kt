@@ -2,7 +2,8 @@ package com.jtprince.bingo.kplugin.webclient
 
 import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.Messages
-import com.jtprince.bingo.kplugin.webclient.model.WebModelMessage
+import com.jtprince.bingo.kplugin.webclient.model.WebModelGameMessage
+import com.jtprince.bingo.kplugin.webclient.model.WebModelMessageRelay
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.HoverEvent
@@ -36,7 +37,9 @@ class WebMessageRelay(
     // @EventHandler(priority = EventPriority.MONITOR)  // TODO
     fun onAdvancement(event: PlayerAdvancementDoneEvent) {
         if (event.advancement.key.key.contains("recipes/")) return
-        client.sendMessage(GsonComponentSerializer.gson().serialize(Component.translatable(event.advancement.key.toString())))
+        client.sendMessage(
+            GsonComponentSerializer.gson().serialize(Component.translatable(event.advancement.key.toString()))
+        )
     }
 
     // @EventHandler(priority = EventPriority.MONITOR)  // TODO
@@ -45,13 +48,13 @@ class WebMessageRelay(
         Messages.bingoAnnounce("msg: " + GlobalTranslator.render(msg, Locale.getDefault()))
     }
 
-    fun receive(message: WebModelMessage) {
+    fun receive(message: WebModelMessageRelay) {
         if (message.sender == client.clientId) {
             // Ignore our own messages (which get sent back to us)
             return
         }
 
-        val msg = GsonComponentSerializer.gson().deserialize(message.content)
+        val msg = GsonComponentSerializer.gson().deserialize(message.json)
             .hoverEvent(HoverEvent.showText(Component.text("Bingo relayed from ${message.sender}")))
         BingoPlugin.server.sendMessage(msg)
     }
