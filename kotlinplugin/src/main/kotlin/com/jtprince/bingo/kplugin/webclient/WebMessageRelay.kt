@@ -2,7 +2,6 @@ package com.jtprince.bingo.kplugin.webclient
 
 import com.jtprince.bingo.kplugin.BingoPlugin
 import com.jtprince.bingo.kplugin.Messages
-import com.jtprince.bingo.kplugin.webclient.model.WebModelGameMessage
 import com.jtprince.bingo.kplugin.webclient.model.WebModelMessageRelay
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.Component

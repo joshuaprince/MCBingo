@@ -131,16 +131,15 @@ object Messages {
         announceWithHeader(component)
     }
 
-    fun bingoAnnounceEnd() {
+    fun bingoAnnounceEnd(winner: BingoPlayer?) {
         bingoAnnounce(Component.text("The game has ended!"))
-    }
-
-    fun bingoAnnouncePlayerVictory(player: BingoPlayer) {
-        val component = Component.empty()
-            .color(NamedTextColor.GOLD)
-            .append(player.formattedName)
-            .append(Component.text(" has won the game!"))
-        announceWithHeader(component)
+        winner?.also {
+            val component = Component.empty()
+                .color(NamedTextColor.GOLD)
+                .append(it.formattedName)
+                .append(Component.text(" is the winner!"))
+            announceWithHeader(component)
+        }
     }
 
     fun Audience.bingoTellNotReady() {

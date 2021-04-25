@@ -10,7 +10,7 @@ import com.jtprince.bingo.kplugin.webclient.WebBackedWebsocketClient
 import com.jtprince.bingo.kplugin.webclient.WebMessageRelay
 import com.jtprince.bingo.kplugin.webclient.WebsocketRxMessage
 import com.jtprince.bingo.kplugin.webclient.model.WebModelBoard
-import com.jtprince.bingo.kplugin.webclient.model.WebModelGameMessage
+import com.jtprince.bingo.kplugin.webclient.model.WebModelGameState
 import com.jtprince.bingo.kplugin.webclient.model.WebModelPlayerBoard
 import org.bukkit.command.CommandSender
 
@@ -120,8 +120,7 @@ class WebBackedGame(
     private fun receiveMessage(msg: WebsocketRxMessage) {
         msg.board?.run(this::receiveBoard)
         msg.pboards?.run(this::receivePlayerBoards)
-        msg.gameState?.run(this::receiveGameStateTransition)
-        msg.gameMessage?.run(this::receiveGameMessage)
+        msg.gameState?.run(this::receiveGameState)
         msg.messageRelay?.run(messageRelay::receive)
     }
 
@@ -160,17 +159,12 @@ class WebBackedGame(
             // TODO Do we even need remote players any more?
             val player = playerManager.bingoPlayer(pb.playerName, false) ?: continue
             playerBoardCache[player]?.updateFromWeb(pb)
-            if (pb.win && winner == null) {
-                winner = player
-                // TODO The backend should send the "game end" state transition.
-                receiveGameStateTransition("end")
-            }
         }
     }
 
-    private fun receiveGameStateTransition(newGameState: String) {
-        when (newGameState) {
-            "start" -> {
+    private fun receiveGameState(msg: WebModelGameState) {
+        return when (msg) {
+            is WebModelGameState.Start -> {
                 if (state != State.READY) {
                     BingoPlugin.logger.warning(
                         "Web backend sent a Start Game message when game is not ready. Ignoring."
@@ -181,7 +175,19 @@ class WebBackedGame(
                 state = State.COUNTING_DOWN
                 startEffects.doStartEffects()
             }
-            "end" -> {
+            is WebModelGameState.Marking -> {
+                val player = playerManager.bingoPlayer(msg.player, true)!!
+                val invalidate = when (msg.markingType) {
+                    "complete" -> false
+                    "invalidate" -> true
+                    else -> run {
+                        BingoPlugin.logger.severe("Unknown game_state marking_type ${msg.markingType}")
+                        return
+                    }
+                }
+                Messages.bingoAnnouncePlayerMarking(player, msg.goalText, invalidate)
+            }
+            is WebModelGameState.End -> {
                 if (state != State.RUNNING && state != State.COUNTING_DOWN) {
                     BingoPlugin.logger.warning(
                         "Web backend sent an End Game message when game is not running. Ignoring."
@@ -190,36 +196,10 @@ class WebBackedGame(
                 }
 
                 state = State.DONE
-                Messages.bingoAnnounceEnd()
+
+                val winner = msg.winner?.let { playerManager.bingoPlayer(it, false) }
+                Messages.bingoAnnounceEnd(winner)
                 startEffects.doEndEffects(winner)
-            }
-            else -> {
-                BingoPlugin.logger.severe(
-                    "Web backend sent an unrecognized game state transition: $newGameState")
-            }
-        }
-    }
-
-    private fun receiveGameMessage(msg: WebModelGameMessage) {
-        val player = msg.formatted.params["player"]?.run {
-            playerManager.bingoPlayer(msg.formatted.params["player"].toString(), true)
-        }
-
-        when (msg.formatted.key) {
-            "bingo.message.marking.complete", "bingo.message.marking.invalidate" -> {
-                if (player == null) {
-                    BingoPlugin.logger.severe("Got marking without a player: ${msg.formatted.params}")
-                    return
-                }
-                val invalidate = "invalidate" in msg.formatted.key
-                Messages.bingoAnnouncePlayerMarking(player, msg.formatted.params["goal"].toString(), invalidate)
-            }
-            "bingo.message.victory" -> {
-                if (player == null) {
-                    BingoPlugin.logger.severe("Got victory without a player: ${msg.formatted.params}")
-                    return
-                }
-                Messages.bingoAnnouncePlayerVictory(player)
             }
         }
     }

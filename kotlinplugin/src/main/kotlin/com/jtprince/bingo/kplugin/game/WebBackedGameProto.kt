@@ -38,7 +38,7 @@ class WebBackedGameProto(
 
     override fun signalEnd(sender: CommandSender?) {
         state = State.DONE
-        Messages.bingoAnnounceEnd()
+        Messages.bingoAnnounceEnd(null)
     }
 
     override fun signalDestroy(sender: CommandSender?) {

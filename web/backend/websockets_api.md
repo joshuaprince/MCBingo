@@ -274,60 +274,54 @@ game, or null if the plyer is still connected.
 
 ### Game State Change
 
-This packet is relayed directly from the client-to-server `game_state` API. 
-It indicates to any plugin backends connected to either start or end the game.
-Example:
+This packet signals game state changes (start, end) and board markings.
+There are multiple types of `game_state` packets:
+
+#### Game Start
 
 ```json
 {
-  "game_state": "start"
-}
-```
-
-### Game Message
-
-This packet contains a message that the client should display to the user. It
-indicates events such as board markings and player wins. If sent to a player
-directly, it should be displayed in the app (not currently supported). If sent
-to a plugin, the message should be broadcast on the server. Example:
-
-```json
-{
-  "game_message": {
-    "formatted": {
-      "key": "bingo.message.marking.complete",
-      "player": "Alice",
-      "goal": "64 Cobblestone"
-    }
+  "game_state": {
+    "state": "start"
   }
 }
 ```
 
-The `formatted` object is guaranteed to have a `key` property, as well as other
-properties that dynamically describe parameters of the message. These are the
-currently supported message keys with the parameters they will include:
+Signals to all clients that the game is starting in 7 seconds.
 
-```js
-{  // Alice has marked 64 Cobblestone!
-  "key": "bingo.message.marking.complete",
-  "player": "Alice",
-  "goal": "64 Cobblestone"
-}
-```
-```js
-{  // Alice has invalidated Never Use a Shield!
-  "key": "bingo.message.marking.invalidate",
-  "player": "Bob",
-  "goal": "Never Use a Shield"
-}
-```
-```js
-{  // Alice has won the game!
-  "key": "bingo.message.victory",
-  "player": "Alice",
+#### Marking
+
+```json
+{
+  "game_state": {
+    "state": "marking",
+    "marking_type": "complete",
+    "player": "Alice",
+    "goal": "64 Cobblestone"
+  }
 }
 ```
 
+Indicates that a player has marked a space *for the first time*. This packet
+must only be used to display a message to the player that something has been
+marked; for an authoritative callback for marking changes, use [Player 
+Boards](#player-boards) instead.
+
+`marking_type` is either "complete" or "invalidate".
+
+#### Game End
+
+```json
+{
+  "game_state": {
+    "state": "end",
+    "winner": "Alice"
+  }
+}
+```
+
+Indicates that the game has ended, along with the winner if there is one.
+`winner` may be null.
 
 ### Minecraft Message Relay
 
