@@ -1,0 +1,27 @@
+._boardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bcPrimary {
+  composes: _boardContainer;
+  margin-left: 40px;
+  margin-right: 40px;
+  width: 600px;
+}
+
+.bcSecondary {
+  composes: _boardContainer;
+  margin: 10px;
+}
+
+@media (max-width: 480px) {
+  .bcPrimary {
+    margin: 2px;
+  }
+}
+
+.boardName {
+  font-size: 1em;
+}

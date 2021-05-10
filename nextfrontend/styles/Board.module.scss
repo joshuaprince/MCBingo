@@ -1,0 +1,208 @@
+$hex-clip-path-horz: polygon(0 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0, 0 25%);
+$hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
+
+.board {
+  display: grid;
+  margin: 0;
+  padding: 2px;
+  grid-gap: 2px;
+  width: 100%;
+
+  /* Main board in the center of the page */
+  &.primary {}
+
+  /* Board off to a side, representing another player */
+  &.secondary {}
+}
+
+.space {
+  position: relative;
+  user-select: none;
+
+  .square & {
+    height: 0;
+    padding-bottom: 100%;
+    border: 1px solid black;
+  }
+
+  .hexagonHorz &, .hexagonVert & {
+    background: black;
+    box-sizing: border-box;
+    height: 0;
+    padding-bottom: 110%;
+  }
+  .hexagonHorz & {
+    clip-path: $hex-clip-path-horz;
+  }
+  .hexagonVert & {
+    clip-path: $hex-clip-path-vert;
+  }
+}
+
+.space.covertMarked {
+  .square & {
+    border: 1px solid crimson;
+    .spaceInner {
+      outline: 3px solid crimson;
+    }
+  }
+
+  .hexagonHorz &, .hexagonVert & {
+    background: crimson;
+    .spaceInner {
+      outline: 2px solid crimson;
+      left: 3px;
+      top: 3px;
+      height: calc(100% - 6px);
+      width: calc(100% - 6px);
+    }
+  }
+}
+
+.revealed .space.editable {
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}
+
+.revealed .space {
+  @import "space-colors.module";
+  @each $i, $name in $markings {
+    &.mark-#{$i}:not(.winning) .spaceInner {
+      background: $name;
+    }
+  }
+}
+
+.spaceInner {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  font-size: 100%;
+  line-height: 1.2;
+  position: absolute;
+
+  .square & {
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .hexagonHorz &, .hexagonVert & {
+    /* Below are overridden fairly heavily when covert-marked */
+    left: 1px;
+    top: 1px;
+    height: calc(100% - 2px);
+    width: calc(100% - 2px);
+  }
+  .hexagonHorz & {
+    clip-path: $hex-clip-path-horz;
+  }
+  .hexagonVert & {
+    clip-path: $hex-clip-path-vert;
+  }
+
+  .secondary & * {
+    display: none;
+  }
+}
+
+.board.revealed .space.winning .spaceInner {
+  @keyframes shine {
+    @import "space-colors.module";
+    0%, 100% {
+      background-color: #ffc858;
+    }
+    50% {
+      background-color: #ffa200;
+    }
+  }
+  animation: shine 1.5s infinite;
+}
+
+.goalText {
+  margin: 25% 10px;
+  .small {
+    font-size: 80%; //TODO
+  }
+}
+
+.goalTooltip {
+  position: absolute;
+  .square & {
+    top: 0;
+    right: 0;
+    padding: 10px;
+  }
+  .hexagonHorz & {
+    width: 100%;
+    top: 8px;
+  }
+  .hexagonVert & {
+    width: 50%;
+    bottom: 2px;
+    right: 3px;
+  }
+}
+
+.goalAutoA {
+  color: gray;
+  .square & {
+    position: absolute;
+    bottom: 0;
+    left: 4px;
+    padding: 5px;
+    font-size: x-small;
+  }
+  .hexagonHorz &, .hexagonVert & {
+    width: 100%;
+    position: absolute;
+    bottom: 5px;
+    font-size: x-small;
+  }
+}
+
+.colorPickerTooltip {
+  display: flex;
+  flex-direction: row;
+
+  & > div {
+    cursor: pointer;
+    margin: 3px;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+
+    &:hover {
+      border: 1px solid coral;
+    }
+  }
+
+  @import "space-colors.module";
+  @each $i, $name in $markings {
+    .mark-#{$i} {
+      background: $name;
+      border: 1px solid $name;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .spaceInner {
+    font-size: 3.6vw;
+    .small {
+      font-size: 3vw;
+    }
+  }
+  .goalAutoA {
+    display: none;
+  }
+  .goalTooltip {
+
+  }
+}

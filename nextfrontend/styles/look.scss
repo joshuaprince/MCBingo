@@ -1,0 +1,67 @@
+/* CSS rules that define the looks of the page, i.e. colors and fonts */
+@font-face {
+    font-family: minecraftFont;
+    src: url('/Minecraftia.ttf');
+}
+
+body {
+  font-family: minecraftFont, sans-serif;
+  //background-image: url('./bg.jpg');
+  //background-repeat: repeat;
+  //background-size: 100px;
+}
+
+.primary .player-name {
+  font-size: 32px;
+}
+
+.obscured .bingo-space .bingo-space-content > * {
+  filter: blur(8px);
+}
+
+@keyframes shine {
+  @import 'space-colors.module';
+  0%, 100% {
+    background-color: #ffc858;
+  }
+  50% {
+    background-color: #ffa200;
+  }
+}
+
+.revealed .bingo-space {
+}
+
+.bingo-space.covertMarked {
+}
+
+/* Loading spinner */
+.loading-spinner {
+  position: absolute;
+  top: 50px;
+  right: 50px;
+  border: 1px solid black;
+  padding: 10px;
+  animation: rotation 4s linear infinite;
+}
+
+/* Reveal Button */
+div.reveal-button {
+  position: absolute;
+  background: white;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  cursor: pointer;
+  border: black 1px solid;
+  margin: 5px;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
