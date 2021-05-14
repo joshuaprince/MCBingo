@@ -6,6 +6,9 @@
   color: white;
   padding: 12px;
   margin-bottom: 30px;
+  @media (max-width: 480px) {
+    margin-bottom: 10px;
+  }
 }
 
 .logo, .link {

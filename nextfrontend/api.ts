@@ -46,8 +46,9 @@ export const onApiMessage = (setState: SetState, message: any) => {
 
 export const getWebSocketUrl = (gameCode: string, playerName?: string) => {
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-  return protocol + '://'
-      + (process.env.NODE_ENV === "development" ? "euphony.jtp:8000" : window.location.host)
+  const portStr = (process.env.NODE_ENV === "development" ? ":8000" :
+    (window.location.port ? ":" + window.location.port : ""))
+  return protocol + '://' + window.location.hostname + portStr
       + '/ws/board/'
       + encodeURI(gameCode) + encodeURI(playerName ? ('/' + playerName) : '')
 }

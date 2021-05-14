@@ -31,9 +31,9 @@ export const SpaceInner: React.FunctionComponent<IProps> = (props) => {
       }
 
       {/* Goal text */}
-      <span className={classNames(styles.goalText, textSizeStyle)}>
+      <div className={classNames(styles.goalText, textSizeStyle)}>
         {props.space.text}
-      </span>
+      </div>
 
       {/* Auto-activation indicator "A" */}
       {autoAStyle &&

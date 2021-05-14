@@ -18,6 +18,7 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
 .space {
   position: relative;
   user-select: none;
+  shape-outside: $hex-clip-path-horz;
 
   .square & {
     height: 0;
@@ -29,13 +30,14 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
     background: black;
     box-sizing: border-box;
     height: 0;
-    padding-bottom: 110%;
   }
   .hexagonHorz & {
     clip-path: $hex-clip-path-horz;
+    padding-bottom: 110%;
   }
   .hexagonVert & {
     clip-path: $hex-clip-path-vert;
+    padding-bottom: 90%;
   }
 }
 
@@ -144,9 +146,8 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
     top: 8px;
   }
   .hexagonVert & {
-    width: 50%;
-    bottom: 2px;
-    right: 3px;
+    margin: auto;
+    left: 5px;
   }
 }
 

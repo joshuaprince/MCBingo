@@ -9,6 +9,7 @@ import { BoardContainer } from "./BoardContainer"
 import { LoadingSpinner } from "./LoadingSpinner"
 import { RevealButton } from "./RevealButton"
 import { SecondaryBoardsContainer } from "./SecondaryBoardsContainer"
+import { TapModeContext, TapModeSelector } from "./TapModeSelector"
 
 type IProps = {
   gameCode: string
@@ -20,6 +21,7 @@ export type IBingoGameState = {
   playerBoards: IPlayerBoard[]
   messages: IGameMessage[]
   connecting: boolean
+  tapToMark: boolean
 }
 
 export const BingoGame: React.FunctionComponent<IProps> = (props: IProps) => {
@@ -51,13 +53,23 @@ export const BingoGame: React.FunctionComponent<IProps> = (props: IProps) => {
   const secondaryPlayers = state.playerBoards.filter(pb => pb.player_name !== props.playerName)
 
   return (
-    <div className={"bingo-app " + (state.board.obscured ? "obscured" : "revealed")}>
-      <BoardContainer isPrimary={true} board={state.board} playerBoard={primaryPlayer}/>
-      <SecondaryBoardsContainer board={state.board} playerBoards={secondaryPlayers}/>
-      {state.connecting && <LoadingSpinner/>}
-      {state.board.obscured && <RevealButton/>}
-      {/*<ChatBox messages={state.messages}/>*/}
-    </div>
+    <TapModeContext.Provider
+      value={{
+        tapToMark: state.tapToMark,
+        set: (v: boolean) => setState(s => ({...s, tapToMark: v}))
+      }}
+    >
+      <div className={"bingo-app " + (state.board.obscured ? "obscured" : "revealed")}>
+        {primaryPlayer &&
+          <TapModeSelector/>
+        }
+        <BoardContainer isPrimary={true} board={state.board} playerBoard={primaryPlayer}/>
+        <SecondaryBoardsContainer board={state.board} playerBoards={secondaryPlayers}/>
+        {state.connecting && <LoadingSpinner/>}
+        {state.board.obscured && <RevealButton/>}
+        {/*<ChatBox messages={state.messages}/>*/}
+      </div>
+    </TapModeContext.Provider>
   )
 }
 
@@ -73,5 +85,6 @@ const getInitialState: (() => IBingoGameState) = () => {
     connecting: true,
     playerBoards: [],
     messages: [],
+    tapToMark: false,
   }
 }

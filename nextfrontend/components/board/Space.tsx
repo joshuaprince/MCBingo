@@ -13,6 +13,7 @@ import React from "react"
 import styles from "styles/Board.module.scss"
 
 import "tippy.js/animations/shift-away.css"
+import { TapModeContext } from "../game/TapModeSelector"
 
 type IProps = {
   obscured: boolean
@@ -26,6 +27,7 @@ type IProps = {
 }
 
 export const Space: React.FunctionComponent<IProps> = (props: IProps) => {
+  const {tapToMark} = React.useContext(TapModeContext)
   const onMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
 
@@ -34,7 +36,8 @@ export const Space: React.FunctionComponent<IProps> = (props: IProps) => {
     }
 
     const isRightClick = e.button === 2;
-    if (isRightClick) {
+    if (isRightClick || !tapToMark) {
+      /* Covert mark */
       sendMarkBoard({
         space_id: props.space.space_id,
         covert_marked: !props.marking?.covert_marked

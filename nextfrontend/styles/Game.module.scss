@@ -25,3 +25,19 @@
 .boardName {
   font-size: 1em;
 }
+
+.tapModeSelector {
+  @media (hover: hover) {
+    /* Mode selector is not visible if the user can hover/right-click */
+    display: none;
+  }
+
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+  label:not(:global(.chakra-switch)) {
+    margin: -3px 8px 0;
+  }
+  margin-bottom: 5px;
+}
