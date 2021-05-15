@@ -8,7 +8,7 @@
   composes: _boardContainer;
   margin-left: 40px;
   margin-right: 40px;
-  width: 600px;
+  width: 100%;
 }
 
 .bcSecondary {
@@ -27,10 +27,7 @@
 }
 
 .tapModeSelector {
-  @media (hover: hover) {
-    /* Mode selector is not visible if the user can hover/right-click */
-    display: none;
-  }
+  /* Explicitly hidden on desktop & spectator mode by useMediaQuery in BingoGame.tsx */
 
   display: flex;
   justify-content: center;

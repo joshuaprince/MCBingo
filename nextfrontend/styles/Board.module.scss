@@ -18,28 +18,108 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
 .space {
   position: relative;
   user-select: none;
-  shape-outside: $hex-clip-path-horz;
+}
 
-  .square & {
+.spaceInner {
+  background: white;
+  position: absolute;
+
+  .secondary & * {
+    display: none;
+  }
+}
+
+.spaceContents {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  font-size: 100%;
+  line-height: 1.2;
+}
+
+/***** SQUARE *****/
+
+.square {
+  .space {
     height: 0;
     padding-bottom: 100%;
     border: 1px solid black;
   }
-
-  .hexagonHorz &, .hexagonVert & {
-    background: black;
-    box-sizing: border-box;
-    height: 0;
+  .spaceInner {
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
   }
-  .hexagonHorz & {
+}
+
+/***** HEXAGON *****/
+
+.hexagonHorz {
+  .space {
+    background: black;
+    height: 0;
     clip-path: $hex-clip-path-horz;
     padding-bottom: 110%;
   }
-  .hexagonVert & {
+  .spaceInner {
+    /* Below are overridden fairly heavily when covert-marked */
+    left: 1px;
+    top: 1px;
+    height: calc(100% - 2px);
+    width: calc(100% - 2px);
+    clip-path: $hex-clip-path-horz;
+  }
+  .goalText {
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+    max-height: 75%;
+    max-width: 100%;
+  }
+  .pendingChangeSpinner {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.hexagonVert {
+  .space {
+    background: black;
+    height: 0;
     clip-path: $hex-clip-path-vert;
     padding-bottom: 90%;
   }
+  .spaceInner {
+    /* Below are overridden fairly heavily when covert-marked */
+    left: 1px;
+    top: 1px;
+    height: calc(100% - 2px);
+    width: calc(100% - 2px);
+    clip-path: $hex-clip-path-vert;
+  }
+  .goalText {
+    max-height: 100%;
+    max-width: 75%;
+  }
+  .pendingChangeSpinner {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
+
+/***** END SHAPES *****/
 
 .space.covertMarked {
   .square & {
@@ -78,42 +158,6 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
   }
 }
 
-.spaceInner {
-  background: white;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  justify-content: center;
-  font-size: 100%;
-  line-height: 1.2;
-  position: absolute;
-
-  .square & {
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-  }
-
-  .hexagonHorz &, .hexagonVert & {
-    /* Below are overridden fairly heavily when covert-marked */
-    left: 1px;
-    top: 1px;
-    height: calc(100% - 2px);
-    width: calc(100% - 2px);
-  }
-  .hexagonHorz & {
-    clip-path: $hex-clip-path-horz;
-  }
-  .hexagonVert & {
-    clip-path: $hex-clip-path-vert;
-  }
-
-  .secondary & * {
-    display: none;
-  }
-}
-
 .board.revealed .space.winning .spaceInner {
   @keyframes shine {
     @import "space-colors.module";
@@ -128,9 +172,21 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
 }
 
 .goalText {
-  margin: 25% 10px;
-  .small {
-    font-size: 80%; //TODO
+  margin: 0;
+  position: relative;
+  font-weight: bold;
+  line-height: 1.1;
+  .hexagonHorz & {
+    .goalTextAfter {
+      width: 50%;
+      height: 100%;
+      content: "";
+      float: right;
+    }
+  }
+  .hexagonVert & {
+    //max-width: 75%;
+    max-height: 75%;
   }
 }
 
@@ -171,26 +227,6 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
 .colorPickerTooltip {
   display: flex;
   flex-direction: row;
-
-  & > div {
-    cursor: pointer;
-    margin: 3px;
-    width: 30px;
-    height: 30px;
-    border-radius: 4px;
-
-    &:hover {
-      border: 1px solid coral;
-    }
-  }
-
-  @import "space-colors.module";
-  @each $i, $name in $markings {
-    .mark-#{$i} {
-      background: $name;
-      border: 1px solid $name;
-    }
-  }
 }
 
 @media (max-width: 480px) {
@@ -205,5 +241,11 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
   }
   .goalTooltip {
 
+  }
+}
+
+.space.pendingChange {
+  filter: brightness(0.9);
+  .pendingChangeSpinner {
   }
 }

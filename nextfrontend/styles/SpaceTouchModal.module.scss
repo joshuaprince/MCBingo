@@ -1,0 +1,24 @@
+.header {
+  margin-top: 30px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tooltipText {
+  margin-bottom: 50px;
+}
+
+.colorPickerModal {
+  background: #363636;
+  display: flex;
+  flex-direction: row;
+  padding: 5px;
+  div {
+    width: 48px;
+    height: 45px;
+  }
+}

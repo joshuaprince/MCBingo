@@ -1,19 +1,22 @@
+import { Spinner } from "@chakra-ui/react"
 import Tippy from "@tippyjs/react"
 
 import { sendMarkBoard } from "api"
 import classNames from "classnames"
 
-import { ColorPickerTooltip } from "components/board/ColorPickerTooltip"
-import { SpaceInner } from "components/board/SpaceInner"
+import { ColorPicker } from "components/board/ColorPicker"
+import { SpaceContents } from "components/board/SpaceContents"
 import { BoardShape } from "interface/IBoard"
 import { Color, IPlayerBoardMarking } from "interface/IPlayerBoard"
 import { IPosition } from "interface/IPosition"
 import { ISpace } from "interface/ISpace"
 import React from "react"
+
 import styles from "styles/Board.module.scss"
 
 import "tippy.js/animations/shift-away.css"
-import { TapModeContext } from "../game/TapModeSelector"
+import { ResponsiveContext } from "../game/ResponsiveContext"
+import { SpaceTouchModal } from "./SpaceTouchModal"
 
 type IProps = {
   obscured: boolean
@@ -26,27 +29,55 @@ type IProps = {
   isVertical: boolean
 }
 
-export const Space: React.FunctionComponent<IProps> = (props: IProps) => {
-  const {tapToMark} = React.useContext(TapModeContext)
-  const onMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
+type IState = {
+  modalOpen: boolean
+  waitingForMark?: Color
+  waitingForCovert?: boolean
+}
 
+export const Space: React.FunctionComponent<IProps> = (props) => {
+  const { isTapOnly, tapToMark } = React.useContext(ResponsiveContext)
+  const [ state, setState ] = React.useState<IState>({modalOpen: false})
+
+  React.useEffect(() => {
+    if (state.waitingForMark !== undefined && state.waitingForMark === props.marking?.color) {
+      setState(s => ({...s, waitingForMark: undefined}))
+    }
+    if (state.waitingForCovert !== undefined && state.waitingForCovert === props.marking?.covert_marked) {
+      setState(s => ({...s, waitingForCovert: undefined}))
+    }
+  })
+
+  const doMark = () => {
+    const colorTo = nextColor(props.marking?.color)
+    setState(s => ({...s, waitingForMark: colorTo}))
+    sendMarkBoard({
+      space_id: props.space.space_id,
+      color: colorTo,
+    })
+  }
+
+  const doCovertMark = () => {
+    const covertTo = !props.marking?.covert_marked
+
+    setState(s => ({...s, waitingForCovert: covertTo}))
+    sendMarkBoard({
+      space_id: props.space.space_id,
+      covert_marked: covertTo
+    })
+  }
+
+  const onClick = () => {
     if (!props.editable) {
       return false
     }
 
-    const isRightClick = e.button === 2;
-    if (isRightClick || !tapToMark) {
-      /* Covert mark */
-      sendMarkBoard({
-        space_id: props.space.space_id,
-        covert_marked: !props.marking?.covert_marked
-      })
+    console.log("clickde!!")
+
+    if (tapToMark) {
+      doMark()
     } else {
-      sendMarkBoard({
-        space_id: props.space.space_id,
-        color: nextColor(props.marking?.color),
-      })
+      doCovertMark()
     }
 
     return false
@@ -54,36 +85,87 @@ export const Space: React.FunctionComponent<IProps> = (props: IProps) => {
 
   const onContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
+    if (!props.editable) {
+       return false
+    }
+
+    if (isTapOnly) {
+      setState(s => ({...s, modalOpen: true}))
+      return false
+    } else {
+      doCovertMark()
+    }
   }
 
   const wholeSpaceTooltip = (!props.isPrimary && !props.obscured) && props.space.text
+  let displayedColor: Color
+  if (state.waitingForMark !== undefined) {
+    displayedColor = state.waitingForMark
+  } else if (props.marking?.color !== undefined) {
+    displayedColor = props.marking?.color
+  } else {
+    displayedColor = Color.UNMARKED
+  }
 
-  const markColorStyle = styles["mark-" + props.marking?.color || Color.UNMARKED]
-  const covertMarkedStyle = props.marking?.covert_marked && styles.covertMarked
+  let displayedCovertMark: boolean = false
+  if (state.waitingForCovert !== undefined) {
+    displayedCovertMark = state.waitingForCovert
+  } else if (props.marking?.covert_marked) {
+    displayedCovertMark = props.marking.covert_marked
+  }
+
+  const markColorStyle = styles["mark-" + displayedColor]
+  const covertMarkedStyle = displayedCovertMark && styles.covertMarked
+  const pendingChange =
+    (state.waitingForMark !== undefined || state.waitingForCovert !== undefined) && styles.pendingChange
   const winningStyle = props.winning && styles.winning
   const editable = props.editable && styles.editable
 
   const spaceDiv = (
     <div
-      className={classNames(styles.space, markColorStyle, covertMarkedStyle, winningStyle, editable)}
+      className={classNames(styles.space, markColorStyle, covertMarkedStyle, pendingChange, winningStyle, editable)}
       style={calculateGridPosition(props.space.position, props.shape, props.isVertical)}
-      onMouseDown={onMouseDown}
+      onClick={onClick}
       onContextMenu={onContextMenu}
     >
-      <SpaceInner
-        obscured={props.obscured}
-        space={props.space}
-        isPrimary={props.isPrimary}
-      />
+      {isTapOnly &&
+        <SpaceTouchModal
+          isOpen={state.modalOpen}
+          close={() => setState(s => ({...s, modalOpen: false}))}
+          space={props.space}
+        />
+      }
+      <div className={styles.spaceInner}>
+        <Spinner hidden={!pendingChange} className={styles.pendingChangeSpinner} size="sm"/>
+        <SpaceContents
+          obscured={props.obscured}
+          space={props.space}
+          isPrimary={props.isPrimary}
+        />
+      </div>
     </div>
   )
 
-  if (wholeSpaceTooltip) {
-    return (<Tippy delay={0} interactive={false} content={wholeSpaceTooltip}>{spaceDiv}</Tippy>)
+  const colorPickTooltip = (
+    <ColorPicker className={styles.colorPickerTooltip} spaceId={props.space.space_id}/>
+  )
+
+  if (isTapOnly) {
+    return spaceDiv
+  } else if (wholeSpaceTooltip) {
+    return (
+      <Tippy delay={0} interactive={false} content={wholeSpaceTooltip}>{spaceDiv}</Tippy>
+    )
   } else {
-    const tooltipHtml = <ColorPickerTooltip spaceId={props.space.space_id}/>;
-    return <Tippy disabled={!props.editable} interactive delay={[500, 300]} animation={'shift-away'}
-                  content={tooltipHtml}>{spaceDiv}</Tippy>;
+    return (
+      <Tippy
+        disabled={!props.editable}
+        interactive
+        delay={[500, 300]}
+        animation={'shift-away'}
+        content={colorPickTooltip}
+      >{spaceDiv}</Tippy>
+    )
   }
 }
 

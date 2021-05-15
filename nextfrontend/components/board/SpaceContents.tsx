@@ -13,14 +13,14 @@ type IProps = {
   isPrimary: boolean
 }
 
-export const SpaceInner: React.FunctionComponent<IProps> = (props) => {
+export const SpaceContents: React.FunctionComponent<IProps> = (props) => {
   const autoAStyle = props.space.auto && styles.goalAutoA
   const textSizeStyle = (props.space.text.length > 32) && styles.small
 
   const goalTooltipText = (props.isPrimary && !props.obscured) && props.space.tooltip
 
   return (
-    <div className={styles.spaceInner}>
+    <div className={styles.spaceContents}>
       {/* Goal tooltip */}
       {goalTooltipText &&
         <Tippy content={goalTooltipText}>
@@ -41,7 +41,8 @@ export const SpaceInner: React.FunctionComponent<IProps> = (props) => {
           <div className={autoAStyle}>
             A
           </div>
-        </Tippy>}
+        </Tippy>
+      }
     </div>
   )
 }

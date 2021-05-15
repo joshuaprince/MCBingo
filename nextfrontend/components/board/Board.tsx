@@ -13,6 +13,7 @@ type IProps = {
   board: IBoard
   playerBoard?: IPlayerBoard
   isPrimary: boolean
+  isTapOnly: boolean
 }
 
 export const Board: React.FunctionComponent<IProps> = (props: IProps) => {
