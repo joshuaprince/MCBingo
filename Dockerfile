@@ -5,8 +5,8 @@ FROM node:16 AS front
 
 WORKDIR /nextfrontend
 
-COPY ./nextfrontend/yarn.lock /frontend
-COPY ./nextfrontend/package.json /frontend
+COPY ./nextfrontend/yarn.lock /nextfrontend
+COPY ./nextfrontend/package.json /nextfrontend
 RUN yarn install
 
 COPY ./nextfrontend /nextfrontend
