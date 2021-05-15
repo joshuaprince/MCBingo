@@ -9,6 +9,7 @@ import styles from "styles/Game.module.scss"
 
 type IProps = {
   isPrimary: boolean,
+  gameCode: string,
   board: IBoard,
   playerBoard?: IPlayerBoard,
 }
@@ -20,7 +21,7 @@ export const BoardContainer: React.FunctionComponent<IProps> = (props: IProps) =
   if (props.playerBoard) {
     nameDisplay = <h2>{props.playerBoard.player_name}</h2>
   } else {
-    nameDisplay = <PlayerNameInput/>
+    nameDisplay = <PlayerNameInput gameCode={props.gameCode}/>
   }
 
   return (

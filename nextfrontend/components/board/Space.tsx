@@ -72,8 +72,6 @@ export const Space: React.FunctionComponent<IProps> = (props) => {
       return false
     }
 
-    console.log("clickde!!")
-
     if (tapToMark) {
       doMark()
     } else {

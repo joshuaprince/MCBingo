@@ -8,17 +8,17 @@ import React from "react"
 import { useMediaQuery } from "react-responsive"
 
 import styles from "styles/Board.module.scss"
+import { RevealButton } from "./RevealButton"
 
 type IProps = {
   board: IBoard
   playerBoard?: IPlayerBoard
   isPrimary: boolean
-  isTapOnly: boolean
 }
 
 export const Board: React.FunctionComponent<IProps> = (props: IProps) => {
   const isVertical = useMediaQuery({
-    query: "(max-width: 480px)"
+    query: "(max-width: 600px)"
   })
 
   const primaryClass = props.isPrimary ? styles.primary : styles.secondary
@@ -36,6 +36,9 @@ export const Board: React.FunctionComponent<IProps> = (props: IProps) => {
 
   return (
     <div className={classNames(styles.board, primaryClass, obscuredClass, shapeClass)}>
+      {props.isPrimary && props.board.obscured &&
+        <RevealButton/>
+      }
       {props.board.spaces.map(spc => {
         const marking: IPlayerBoardMarking | undefined =
           props.playerBoard?.markings.find(pbm => pbm.space_id === spc.space_id)

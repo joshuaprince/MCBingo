@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect } from 'react'
 import { useMediaQuery } from "react-responsive"
 import useWebSocket, { ReadyState } from "react-use-websocket"
+
+import styles from "styles/Game.module.scss"
 import { getWebSocketUrl, onApiMessage, updateWebSocket } from "../../api"
-import { BoardShape, IBoard } from "../../interface/IBoard"
+import { IBoard } from "../../interface/IBoard"
 import { IGameMessage } from "../../interface/IGameMessage"
 import { IPlayerBoard } from "../../interface/IPlayerBoard"
 
 import { BoardContainer } from "./BoardContainer"
-import { LoadingSpinner } from "./LoadingSpinner"
+import { BoardSkeleton } from "./BoardSkeleton"
+import { CornerLoadingSpinner } from "./CornerLoadingSpinner"
 import { ResponsiveContext } from './ResponsiveContext'
-import { RevealButton } from "./RevealButton"
 import { SecondaryBoardsContainer } from "./SecondaryBoardsContainer"
 import { TapModeSelector } from "./TapModeSelector"
 
@@ -19,7 +21,7 @@ type IProps = {
 }
 
 export type IBingoGameState = {
-  board: IBoard
+  board?: IBoard
   playerBoards: IPlayerBoard[]
   messages: IGameMessage[]
   connecting: boolean
@@ -65,14 +67,18 @@ export const BingoGame: React.FunctionComponent<IProps> = (props: IProps) => {
         setTapToMark: (v: boolean) => setState(s => ({...s, tapToMark: v}))
       }}
     >
-      <div className={"bingo-app " + (state.board.obscured ? "obscured" : "revealed")}>
+      <div className={styles.game}>
         {isTapOnly && primaryPlayer &&
           <TapModeSelector/>
         }
-        <BoardContainer isPrimary={true} board={state.board} playerBoard={primaryPlayer}/>
-        <SecondaryBoardsContainer board={state.board} playerBoards={secondaryPlayers}/>
-        {state.connecting && <LoadingSpinner/>}
-        {state.board.obscured && <RevealButton/>}
+        {state.board && <>
+          <BoardContainer isPrimary={true} gameCode={props.gameCode} board={state.board} playerBoard={primaryPlayer} />
+          <SecondaryBoardsContainer gameCode={props.gameCode} board={state.board} playerBoards={secondaryPlayers}/>
+        </>}
+        {!state.board &&
+          <BoardSkeleton/>
+        }
+        {state.connecting && <CornerLoadingSpinner/>}
         {/*<ChatBox messages={state.messages}/>*/}
       </div>
     </ResponsiveContext.Provider>
@@ -80,14 +86,8 @@ export const BingoGame: React.FunctionComponent<IProps> = (props: IProps) => {
 }
 
 const getInitialState = (isTapOnly: boolean): IBingoGameState => {
-  const board: IBoard = {
-    obscured: true,
-    shape: BoardShape.SQUARE,
-    spaces: [],
-  }
-
   return {
-    board: board,
+    board: undefined,
     connecting: true,
     playerBoards: [],
     messages: [],

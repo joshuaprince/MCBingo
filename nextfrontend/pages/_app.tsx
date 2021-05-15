@@ -4,17 +4,13 @@ import Head from "next/head"
 
 import "styles/globals.css"
 
-import "styles/look.scss"
-import "styles/space-colors.module.scss"
-import "styles/structure.scss"
-
 import "tippy.js/dist/tippy.css"
 import { Layout } from "../components/Layout"
 
 
 const theme = extendTheme({
   fonts: {
-    body: "Minecraftia.ttf"
+    // body: "Minecraftia.ttf"
   }
 })
 

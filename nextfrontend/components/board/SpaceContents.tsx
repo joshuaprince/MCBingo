@@ -18,6 +18,7 @@ export const SpaceContents: React.FunctionComponent<IProps> = (props) => {
   const textSizeStyle = (props.space.text.length > 32) && styles.small
 
   const goalTooltipText = (props.isPrimary && !props.obscured) && props.space.tooltip
+  const hasTooltipStyle = goalTooltipText && styles.hasTooltip
 
   return (
     <div className={styles.spaceContents}>
@@ -31,7 +32,7 @@ export const SpaceContents: React.FunctionComponent<IProps> = (props) => {
       }
 
       {/* Goal text */}
-      <div className={classNames(styles.goalText, textSizeStyle)}>
+      <div className={classNames(styles.goalText, textSizeStyle, hasTooltipStyle)}>
         {props.space.text}
       </div>
 

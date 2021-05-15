@@ -7,6 +7,7 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
   padding: 2px;
   grid-gap: 2px;
   width: 100%;
+  position: relative;
 
   /* Main board in the center of the page */
   &.primary {}
@@ -158,6 +159,10 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
   }
 }
 
+.obscured .spaceContents {
+  filter: blur(8px);
+}
+
 .board.revealed .space.winning .spaceInner {
   @keyframes shine {
     @import "space-colors.module";
@@ -229,19 +234,50 @@ $hex-clip-path-vert: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
   flex-direction: row;
 }
 
-@media (max-width: 480px) {
+@media (min-width: 1000px) {
   .spaceInner {
-    font-size: 3.6vw;
+    font-size: 1.3em;
     .small {
-      font-size: 3vw;
+      font-size: 0.8em;
+    }
+  }
+}
+@media (max-width: 1000px) {
+  .spaceInner {
+    font-size: 2.2vw;
+    .small {
+      font-size: 1.6vw;
+    }
+  }
+}
+@media (max-width: 600px) {
+  .spaceInner {
+    font-size: 3vw;
+    .small {
+      font-size: 2.5vw;
     }
   }
   .goalAutoA {
     display: none;
   }
   .goalTooltip {
-
+    display: none;
   }
+  .goalText.hasTooltip::after {
+    content: "\a0?";  // nbsp + question mark
+    vertical-align: super;
+    font-size: 2vw;
+  }
+}
+
+.revealButton {
+  position: absolute !important;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  z-index: 999;
 }
 
 .space.pendingChange {
