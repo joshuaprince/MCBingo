@@ -1,5 +1,4 @@
 import classNames from "classnames"
-
 import { Space } from "components/board/Space"
 
 import { BoardShape, IBoard } from "interface/IBoard"

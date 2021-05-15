@@ -9,11 +9,15 @@
 }
 
 .tooltipText {
-  margin-bottom: 50px;
+  margin-bottom: 1em;
+}
+
+.autoText {
+  font-style: italic;
+  margin-bottom: 1em;
 }
 
 .colorPickerModal {
-  background: #363636;
   display: flex;
   flex-direction: row;
   padding: 5px;

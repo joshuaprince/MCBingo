@@ -2,6 +2,7 @@ import { FormLabel, Switch } from "@chakra-ui/react"
 import React from "react"
 
 import styles from "styles/Game.module.scss"
+
 import { ResponsiveContext } from "./ResponsiveContext"
 
 export const TapModeSelector: React.FC = () => {

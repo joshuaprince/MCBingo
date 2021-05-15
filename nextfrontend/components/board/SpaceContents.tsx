@@ -3,8 +3,8 @@ import classNames from "classnames"
 
 import { ISpace } from "interface/ISpace"
 import React from "react"
-import styles from "styles/Board.module.scss"
 
+import styles from "styles/Board.module.scss"
 import "tippy.js/animations/shift-away.css"
 
 type IProps = {
@@ -38,7 +38,7 @@ export const SpaceContents: React.FunctionComponent<IProps> = (props) => {
 
       {/* Auto-activation indicator "A" */}
       {autoAStyle &&
-        <Tippy content={"This space will be activated automatically."}>
+        <Tippy content={"This space will be marked automatically when you complete the objective in-game."}>
           <div className={autoAStyle}>
             A
           </div>

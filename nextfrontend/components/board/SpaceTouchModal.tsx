@@ -11,6 +11,7 @@ import {
 import React from "react"
 
 import styles from "styles/SpaceTouchModal.module.scss"
+
 import { ISpace } from "../../interface/ISpace"
 import { ColorPicker } from "./ColorPicker"
 
@@ -31,6 +32,12 @@ export const SpaceTouchModal: React.FunctionComponent<IProps> = (props) => {
         <ModalBody className={styles.body}>
           {props.space.tooltip &&
             <p className={styles.tooltipText}>{props.space.tooltip}</p>
+          }
+
+          {props.space.auto &&
+            <p className={styles.autoText}>
+              This space will be marked automatically when you complete the objective in-game.
+            </p>
           }
 
           <ColorPicker

@@ -27,7 +27,7 @@ export const ColorPicker: React.FunctionComponent<IProps> = (props: IProps) => {
 
   return (
     <>
-      <p>Set Space Color</p>
+      <p>Set Space Color:</p>
       <div className={classNames(styles.colorPicker, props.className)}>
         {$enum(Color).map(color => (
           <div

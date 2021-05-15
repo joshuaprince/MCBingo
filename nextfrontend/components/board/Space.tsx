@@ -3,7 +3,6 @@ import Tippy from "@tippyjs/react"
 
 import { sendMarkBoard } from "api"
 import classNames from "classnames"
-
 import { ColorPicker } from "components/board/ColorPicker"
 import { SpaceContents } from "components/board/SpaceContents"
 import { BoardShape } from "interface/IBoard"
@@ -13,7 +12,6 @@ import { ISpace } from "interface/ISpace"
 import React from "react"
 
 import styles from "styles/Board.module.scss"
-
 import "tippy.js/animations/shift-away.css"
 import { ResponsiveContext } from "../game/ResponsiveContext"
 import { SpaceTouchModal } from "./SpaceTouchModal"
@@ -148,12 +146,12 @@ export const Space: React.FunctionComponent<IProps> = (props) => {
     <ColorPicker className={styles.colorPickerTooltip} spaceId={props.space.space_id}/>
   )
 
-  if (isTapOnly) {
-    return spaceDiv
-  } else if (wholeSpaceTooltip) {
+  if (wholeSpaceTooltip) {
     return (
       <Tippy delay={0} interactive={false} content={wholeSpaceTooltip}>{spaceDiv}</Tippy>
     )
+  } else if (isTapOnly) {
+    return spaceDiv
   } else {
     return (
       <Tippy
