@@ -5,6 +5,7 @@ from generation.goals import ConcreteGoal
 
 
 class Space(models.Model):
+    id = models.AutoField(primary_key=True)
     board = models.ForeignKey('Board', on_delete=models.CASCADE)
     position = models.OneToOneField('Position', on_delete=models.CASCADE)
 

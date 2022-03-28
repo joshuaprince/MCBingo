@@ -4,6 +4,7 @@ from backend.models.color import Color
 
 
 class PlayerBoardMarking(models.Model):
+    id = models.AutoField(primary_key=True)
     space = models.ForeignKey('Space', on_delete=models.CASCADE)
     player_board = models.ForeignKey('PlayerBoard', on_delete=models.CASCADE)
 

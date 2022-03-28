@@ -1,3 +1,3 @@
 -r requirements.txt
-daphne~=3.0.1
-psycopg2-binary~=2.8.6
+daphne==3.0.2
+psycopg2-binary==2.9.3

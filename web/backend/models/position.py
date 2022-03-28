@@ -16,6 +16,7 @@ class Position(models.Model):
     the right increments `y` by 1. This makes it possible for coordinates to be negative. However,
     all coordinates must be no further above or to the left of (0, 0).
     """
+    id = models.AutoField(primary_key=True)
     x = models.IntegerField()
     y = models.IntegerField()
 
