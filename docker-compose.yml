@@ -21,10 +21,10 @@ services:
       - internal
       - external
     depends_on:
-      - web
-  web:
+      - backend
+  backend:
     build:
-      context: web
+      context: backend
     environment:
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-MultiBingo.settings_prod}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}

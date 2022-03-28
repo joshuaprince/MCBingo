@@ -3,13 +3,13 @@
 # Stage 1: Build frontend's static files.
 FROM node:16 AS front
 
-WORKDIR /nextfrontend
+WORKDIR /frontend
 
-COPY ./nextfrontend/yarn.lock /nextfrontend
-COPY ./nextfrontend/package.json /nextfrontend
+COPY ./frontend/yarn.lock /frontend
+COPY ./frontend/package.json /frontend
 RUN yarn install
 
-COPY ./nextfrontend /nextfrontend
+COPY ./frontend /frontend
 RUN yarn run next build
 RUN yarn run next export
 
@@ -17,4 +17,4 @@ RUN yarn run next export
 # Stage 2: Build the nginx image.
 FROM nginx:1
 COPY ./nginx.conf.template /etc/nginx/templates/nginx.conf.template
-COPY --from=front /nextfrontend/out /nextfrontend
+COPY --from=front /frontend/out /frontend

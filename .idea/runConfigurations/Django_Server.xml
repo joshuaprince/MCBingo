@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Django Server" type="Python.DjangoServer" factoryName="Django server">
-    <module name="WebBackend" />
+    <module name="backend" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>

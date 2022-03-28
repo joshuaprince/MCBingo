@@ -3,9 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/MultiBingo.iml" filepath="$PROJECT_DIR$/.idea/MultiBingo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/nextfrontend/NextFrontend.iml" filepath="$PROJECT_DIR$/nextfrontend/NextFrontend.iml" />
       <module fileurl="file://$PROJECT_DIR$/tools/Tools.iml" filepath="$PROJECT_DIR$/tools/Tools.iml" />
-      <module fileurl="file://$PROJECT_DIR$/web/WebBackend.iml" filepath="$PROJECT_DIR$/web/WebBackend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backend/backend.iml" filepath="$PROJECT_DIR$/backend/backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/frontend/frontend.iml" filepath="$PROJECT_DIR$/frontend/frontend.iml" />
     </modules>
   </component>
 </project>
