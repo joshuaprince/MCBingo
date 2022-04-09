@@ -33,7 +33,7 @@ export default function About() {
       </Text>
 
       <Text>
-        <b>You aren't</b> - To win Hexagon Bingo, <b>your markings can curve around the board</b>!
+        You aren't - To win Hexagon Bingo, <b>your markings can curve around the board</b>!
         As long as your markings are in a single chain, they don't have to make a straight
         line. If you're the first to mark <b>6</b> hexes in a chain, you win! <b>These are all
         considered WINS</b>:
@@ -120,7 +120,8 @@ export default function About() {
 const AboutExampleBoard: React.FC<Omit<ExampleBoardProps, 'orientation'>> = (props ) => {
   return (
     <ExampleHexBoard
-      className={styles.board}
+      containerClassName={styles.exampleBoardContainer}
+      resetButtonClassName={styles.resetBoardButton}
       orientation={"hexagon-horizontal"}
       {...props}
     />

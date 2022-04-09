@@ -8,10 +8,11 @@
   }
 }
 
-.board {
+.exampleBoardContainer {
   width: 95%;
   max-width: 500px;
   margin: auto auto 1.5em;
+  position: relative;
 }
 
 .flexy {
@@ -19,7 +20,13 @@
   flex-wrap: wrap;
 }
 
-.flexy .board {
+.flexy .exampleBoardContainer {
   max-width: 300px;
   margin: 0 0 1.5em;
+}
+
+.resetBoardButton {
+  position: absolute !important;
+  right: 5px;
+  top: 10px;
 }

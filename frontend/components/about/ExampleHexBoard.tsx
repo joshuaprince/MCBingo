@@ -1,5 +1,6 @@
 import React from "react"
-import { useToast } from "@chakra-ui/react"
+import { IconButton, Tooltip, useToast } from "@chakra-ui/react"
+import { RepeatIcon } from "@chakra-ui/icons"
 import { useMediaQuery } from "react-responsive"
 
 import { getBoardWinHex } from "hex_win_detection"
@@ -23,13 +24,16 @@ type Marking = InitialMarking & {
 
 type ExampleBoardState = {
   markings: Marking[]
+  resetButton: boolean
 }
 
 export type ExampleBoardProps = {
   markColor: Color
   orientation: BoardOrientation
   initialMarkings: InitialMarking[]
-  className?: string
+  containerClassName?: string
+  boardClassName?: string
+  resetButtonClassName?: string
 }
 
 export const ExampleHexBoard: React.FC<ExampleBoardProps> = (props) => {
@@ -56,19 +60,32 @@ export const ExampleHexBoard: React.FC<ExampleBoardProps> = (props) => {
   const winners = getBoardWinHex(state.markings.filter(m => m.marked))
 
   return (
-    <Board className={props.className} orientation={props.orientation}>
-      {state.markings.map(m =>
-        <Space
-          key={keyOf(m)}
-          position={{x: m.x, y: m.y}}
-          orientation={props.orientation}
-          onClick={() => {toggleMark(m, setState); showResetNote()}}
-          onContext={() => setState(getInitialState(props.initialMarkings))}
-          colorClass={getColorClass(m, winners, props.markColor)}
-          borderColor={m.outlineColor}
-        />
-      )}
-    </Board>
+    <div className={props.containerClassName}>
+      <Board className={props.boardClassName} orientation={props.orientation}>
+        {state.markings.map(m =>
+          <Space
+            key={keyOf(m)}
+            position={{x: m.x, y: m.y}}
+            orientation={props.orientation}
+            onClick={() => {toggleMark(m, setState); showResetNote()}}
+            onContext={() => setState(getInitialState(props.initialMarkings))}
+            colorClass={getColorClass(m, winners, props.markColor)}
+            borderColor={m.outlineColor}
+          />
+        )}
+      </Board>
+      {state.resetButton &&
+        <Tooltip label={"Reset Board"}>
+          <IconButton
+            className={props.resetButtonClassName}
+            aria-label={"Reset Board"}
+            icon={<RepeatIcon />}
+            size={"sm"}
+            onClick={() => setState(getInitialState(props.initialMarkings))}
+          />
+        </Tooltip>
+      }
+    </div>
   )
 }
 
@@ -77,15 +94,16 @@ const toggleMark = (
   setState: React.Dispatch<React.SetStateAction<ExampleBoardState>>,
 ) => {
   // Holy moly, I need immutable.js
-  setState(s => ({...s, markings: s.markings.map(m => {
+  setState(s => ({...s, resetButton: true, markings: s.markings.map(m => {
     if (pos.x === m.x && pos.y === m.y) {
       return {...m, outlineColor: undefined, marked: !m.marked}
-    } else return {...m, outlineColor: undefined}
+    } else return {...m, resetButton: true, outlineColor: undefined}
   })}))
 }
 
 const getInitialState = (initialMarkings: InitialMarking[]): ExampleBoardState => {
   return {
+    resetButton: false,
     markings: standardHexPositions().map<Marking>(pos => {
       /* If the caller specified an initial marking in props, use that marking. */
       const initialMarking = initialMarkings.find(im => im.x === pos.x && im.y === pos.y)
