@@ -615,7 +615,7 @@ goals:
 
   jm_nether_fish:
     difficulty: 0
-    text: Get a Fish into Nether
+    text: Get a Fish into the Nether
 
   jm_dried_kelp_blocks:
     difficulty: 0
@@ -654,6 +654,28 @@ goals:
     difficulty: 0
     weight: 0.5
     text: Firework Star
+
+  jtp18_amethyst_shard:
+    difficulty: 0
+    text: Amethyst Shard
+
+  jtp18_flowering_azalea:
+    difficulty: 0
+    var: 6..15
+    text: $var Flowering Azalea
+
+  jtp18_copper_blocks:
+    difficulty: 0
+    var: 3..5
+    text: $var Copper Blocks
+    tooltip: All copper block variants count (Waxed, Oxidized, etc.)
+    antisynergy: CopperBlocks
+
+  jtp18_bucket_axolotl:
+    difficulty: 0
+    weight: 0.5
+    text: Bucket of Axolotl
+    antisynergy: BucketTypes
 
   jm_edible_items_hard:
     difficulty: 1
@@ -807,7 +829,7 @@ goals:
   jm_finish_jump_world:
     difficulty: 1
     text: Finish by jumping from top to bottom of the world
-    tooltip: Dig a hole to bedrock and build to 256 Y (height limit), then jump from
+    tooltip: Dig a hole to bedrock and build to 320 Y (height limit), then jump from
       top to bottom at the end of the game
     antisynergy: Finish
 
@@ -1189,7 +1211,34 @@ goals:
     difficulty: 1
     type: negative
     text: Never use Buckets
+    antisynergy: BucketTypes
 
   jm_cookie:
     difficulty: 1
     text: Cookie
+
+  jtp18_copper_blocks_hard:
+    difficulty: 1
+    var: 5..7
+    text: $var Copper Blocks
+    tooltip: All copper block variants count (Waxed, Oxidized, etc.)
+    antisynergy: CopperBlocks
+
+  jtp18_mob_through_dripleaf:
+    difficulty: 1
+    text: Make a hostile mob fall through a Big Dripleaf
+    tooltip: You must hear the dripleaf collapse for it to count.
+
+  jtp18_freeze_damage:
+    difficulty: 1
+    text: Fall in Powder Snow and take freezing damage
+
+  jtp18_spyglass:
+    difficulty: 1
+    text: Look through a Spyglass
+
+  jtp18_finish_far_away:
+    var: 2..6
+    difficulty: 1
+    text: Finish $var,000 or more blocks from the world spawn point
+    antisynergy: Finish
