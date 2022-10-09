@@ -63,7 +63,7 @@ type IProps = {
   changePending?: boolean
 }
 
-export const Space: React.FunctionComponent<IProps> = (props) => {
+export const Space: React.FunctionComponent<React.PropsWithChildren<IProps>> = (props) => {
   const borderStyle = props.borderColor && styles.bordered
   const clickableStyle = props.onClick && styles.clickable
 

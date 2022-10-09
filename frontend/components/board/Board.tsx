@@ -30,7 +30,7 @@ type IProps = {
   className?: string
 }
 
-export const Board: React.FunctionComponent<IProps> = (props) => {
+export const Board: React.FunctionComponent<React.PropsWithChildren<IProps>> = (props) => {
   const obscuredClass = props.isObscured ? styles.obscured : styles.revealed
 
   const shapeClass = (() => {

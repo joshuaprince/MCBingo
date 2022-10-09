@@ -14,6 +14,7 @@ const theme = extendTheme({
   }
 })
 
+// noinspection JSUnusedGlobalSymbols
 export default function BingoApp({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider theme={theme}>
